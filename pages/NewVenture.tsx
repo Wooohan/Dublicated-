@@ -199,17 +199,10 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const loadVentures = async (f: NewVentureFilters, page = 0) => {
     setIsLoading(true);
     try {
-      const data = await fetchNewVenturesFromBackend({ ...f, limit: PAGE_SIZE, offset: page * PAGE_SIZE });
-      setVentures(data);
+      const result = await fetchNewVenturesFromBackend({ ...f, limit: PAGE_SIZE, offset: page * PAGE_SIZE });
+      setVentures(result.data);
       setCurrentPage(page);
-      // If first page and we got less than PAGE_SIZE, we know the exact filtered count
-      if (page === 0 && data.length < PAGE_SIZE) {
-        setFilteredCount(data.length);
-      } else {
-        // For paginated results, estimate filtered count
-        // If we got a full page, there are more records
-        setFilteredCount(page * PAGE_SIZE + data.length + (data.length === PAGE_SIZE ? 1 : 0));
-      }
+      setFilteredCount(result.filtered_count);
     } finally {
       setIsLoading(false);
     }
@@ -301,7 +294,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const activeStatusOptions = [
     { value: '', label: 'Any' },
     { value: 'active', label: 'Active' },
-    { value: 'authorization_pending', label: 'Authorization Pending for Property' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'authorization_pending', label: 'Authorization Pending' },
     { value: 'not_authorized', label: 'Not Authorized' },
   ];
   /* ── Detail Modal ──────────────────────────────────────────────────────── */
@@ -627,10 +621,10 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-1 tracking-tight">New Ventures</h1>
-          <p className="text-slate-400 text-sm">
+          <p className="text-white text-sm font-bold">
             Showing <span className="text-indigo-400 font-bold">{ventures.length}</span> records
-            {hasActiveFilters && ventures.length === PAGE_SIZE && <span className="text-slate-500"> (filtered results — refine filters for more specific results)</span>}
-            {!hasActiveFilters && ventures.length === PAGE_SIZE && <span className="text-slate-500"> of {totalCount.toLocaleString()} total (default 200 — use filters to search all)</span>}
+            {hasActiveFilters && <span className="text-white"> out of {filteredCount.toLocaleString()}</span>}
+            {!hasActiveFilters && totalCount > 0 && <span className="text-white"> of {totalCount.toLocaleString()} total</span>}
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
@@ -863,7 +857,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                   const isActive = statusUpper.includes('AUTHORIZED') && !statusUpper.includes('NOT') && !statusUpper.includes('PENDING');
                   const isPending = statusUpper.includes('PENDING');
                   const statusClass = isActive
-                    ? 'bg-emerald-500/10 text-emerald-400'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                     : isPending
                       ? 'bg-amber-500/10 text-amber-400'
                       : 'bg-red-500/10 text-red-400';
@@ -916,8 +910,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       {/* Pagination */}
       {!isLoading && ventures.length > 0 && (
         <div className="flex items-center justify-between mt-3 px-2">
-          <p className="text-xs text-slate-500">
-            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length}{!hasActiveFilters && totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : ''}
+          <p className="text-xs text-white font-bold">
+            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length}{hasActiveFilters ? ` of ${filteredCount.toLocaleString()}` : (totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : '')}
           </p>
           <div className="flex gap-2">
             <button
