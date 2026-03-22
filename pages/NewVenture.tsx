@@ -305,7 +305,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     { value: 'not_authorized', label: 'Not Authorized' },
   ];
   /* ── Detail Modal ──────────────────────────────────────────────────────── */
-  const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void }> = ({ v, onClose }) => {
+  const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void; isLoading?: boolean }> = ({ v, onClose, isLoading: isDetailLoading }) => {
     const [detailTab, setDetailTab] = useState<'overview' | 'cargo' | 'fleet' | 'safety' | 'driver'>('overview');
     const CopyBtn: React.FC<{ text: string; field: string }> = ({ text, field }) => {
       if (!text || text === '-') return null;
@@ -403,7 +403,13 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             ))}
           </div>
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-slate-900/40">
+          <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-slate-900/40 relative">
+            {isDetailLoading && (
+              <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-b-[2.5rem]">
+                <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-4" />
+                <p className="text-slate-400 text-sm font-medium">Loading details...</p>
+              </div>
+            )}
             {detailTab === 'overview' && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-slate-850/60 p-6 rounded-3xl border border-slate-700/50 space-y-4 shadow-lg group">
@@ -932,7 +938,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
         </div>
       )}
       {/* Detail Modal */}
-      {selectedVenture && <DetailModal v={selectedVenture} onClose={() => setSelectedVenture(null)} />}
+      {selectedVenture && <DetailModal v={selectedVenture} onClose={() => setSelectedVenture(null)} isLoading={loadingDetail} />}
     </div>
   );
 };
