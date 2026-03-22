@@ -13,11 +13,9 @@ import {
   fetchNewVentureDetail,
   NewVentureFilters,
 } from '../services/backendApiService';
-
 interface NewVentureProps {
   user: User;
 }
-
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
   'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
@@ -25,13 +23,10 @@ const US_STATES = [
   'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
   'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'
 ];
-
 const CARRIER_OPERATIONS = [
   'Interstate', 'Intrastate Only (HM)', 'Intrastate Only (Non-HM)'
 ];
-
 /* ── Reusable sub-components ─────────────────────────────────────────────── */
-
 const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon, children, defaultOpen = true }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -44,17 +39,14 @@ const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: Re
     </div>
   );
 };
-
 const FilterLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">{children}</label>
 );
-
 const FilterSelect: React.FC<{ name: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: { value: string; label: string }[] }> = ({ name, value, onChange, options }) => (
   <select name={name} value={value} onChange={onChange} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500">
     {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
   </select>
 );
-
 const MinMaxInputs: React.FC<{
   nameMin: string; nameMax: string;
   valueMin: string; valueMax: string;
@@ -67,7 +59,6 @@ const MinMaxInputs: React.FC<{
       className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
   </div>
 );
-
 const MultiSelect: React.FC<{
   options: string[];
   selected: string[];
@@ -100,11 +91,8 @@ const MultiSelect: React.FC<{
     </div>
   );
 };
-
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
-
 const val = (v: string | undefined | null): string => (v && v.trim()) ? v.trim() : '-';
-
 const cargoFields: { key: keyof NewVentureData; label: string }[] = [
   { key: 'genfreight', label: 'General Freight' },
   { key: 'household', label: 'Household Goods' },
@@ -137,7 +125,6 @@ const cargoFields: { key: keyof NewVentureData; label: string }[] = [
   { key: 'waterwell', label: 'Water Well' },
   { key: 'cargoothr', label: 'Other' },
 ];
-
 function downloadNewVentureCSV(data: NewVentureData[]) {
   if (!data.length) return;
   const headers = [
@@ -160,27 +147,21 @@ function downloadNewVentureCSV(data: NewVentureData[]) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
 /* ── Main Component ──────────────────────────────────────────────────────── */
-
 export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const isAdmin = user.role === 'admin';
-
   // Data
   const [ventures, setVentures] = useState<NewVentureData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [availDates, setAvailDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
   // Pagination
   const PAGE_SIZE = 200;
   const [currentPage, setCurrentPage] = useState(0);
-
   // Detail modal
   const [selectedVenture, setSelectedVenture] = useState<NewVentureData | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-
   // Filters
   const [showFilters, setShowFilters] = useState(false);
   const [docketSearch, setDocketSearch] = useState('');
@@ -202,13 +183,11 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     cargoOnFile: '',
     bondOnFile: '',
   });
-
   // Scrape
   const [showScrapePanel, setShowScrapePanel] = useState(false);
   const [scrapeDate, setScrapeDate] = useState('');
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<{ success: boolean; message: string } | null>(null);
-
   // Load metadata on mount
   useEffect(() => {
     getNewVentureCount().then(setTotalCount);
@@ -216,7 +195,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     // load default records
     loadVentures({});
   }, []);
-
   const loadVentures = async (f: NewVentureFilters, page = 0) => {
     setIsLoading(true);
     try {
@@ -227,7 +205,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       setIsLoading(false);
     }
   };
-
   const handleRowClick = async (v: NewVentureData) => {
     if (!v.id) { setSelectedVenture(v); return; }
     setLoadingDetail(true);
@@ -236,12 +213,10 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     if (detail) setSelectedVenture(detail as NewVentureData);
     setLoadingDetail(false);
   };
-
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
-
   const buildFilters = useCallback((): NewVentureFilters => {
     const f: NewVentureFilters = {};
     if (docketSearch.trim()) f.docketNumber = docketSearch.trim();
@@ -263,11 +238,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     if (filters.bondOnFile) f.bondOnFile = filters.bondOnFile;
     return f;
   }, [docketSearch, nameSearch, dateFrom, dateTo, filters]);
-
   const applyFilters = () => loadVentures(buildFilters(), 0);
-
   const goToPage = (page: number) => loadVentures(buildFilters(), page);
-
   const resetAll = () => {
     setDocketSearch('');
     setNameSearch('');
@@ -282,7 +254,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     });
     loadVentures({}, 0);
   };
-
   const handleScrape = async () => {
     if (!scrapeDate) return;
     setIsScraping(true);
@@ -304,29 +275,23 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       setIsScraping(false);
     }
   };
-
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
   };
-
   const hasActiveFilters = !!(docketSearch.trim() || nameSearch.trim() || dateFrom || dateTo ||
     filters.dotNumber || filters.active || filters.states.length > 0 || filters.hasEmail ||
     filters.carrierOperation.length > 0 || filters.hazmat || filters.powerUnitsMin || filters.powerUnitsMax ||
     filters.driversMin || filters.driversMax || filters.bipdOnFile || filters.cargoOnFile || filters.bondOnFile);
-
   const yesNoOptions = [
     { value: '', label: 'Any' },
     { value: 'true', label: 'Yes' },
     { value: 'false', label: 'No' },
   ];
-
   /* ── Detail Modal ──────────────────────────────────────────────────────── */
-
   const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void }> = ({ v, onClose }) => {
     const [detailTab, setDetailTab] = useState<'overview' | 'cargo' | 'fleet' | 'safety' | 'driver'>('overview');
-
     const CopyBtn: React.FC<{ text: string; field: string }> = ({ text, field }) => {
       if (!text || text === '-') return null;
       return (
@@ -335,7 +300,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
         </button>
       );
     };
-
     const InfoRow: React.FC<{ label: string; value: string; copyKey?: string }> = ({ label, value, copyKey }) => (
       <div className="flex justify-between items-center py-2 border-b border-slate-800/50">
         <span className="text-slate-400 text-sm">{label}</span>
@@ -345,12 +309,33 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
         </span>
       </div>
     );
-
     const activeCargo = cargoFields.filter(cf => {
       const v2 = v[cf.key] as string | undefined;
       return v2 && v2.trim().toUpperCase() === 'X';
     });
-
+    // Helper to get driver data from raw_data or top-level fields
+    const rawVal = (...keys: string[]): string => {
+      const raw = v.raw_data || (v as Record<string, any>);
+      for (const key of keys) {
+        // Check top-level typed field
+        const typedVal = (v as Record<string, any>)[key];
+        if (typedVal !== undefined && typedVal !== null && String(typedVal).trim()) return String(typedVal).trim();
+        // Check raw_data with exact key
+        if (raw[key] !== undefined && raw[key] !== null && String(raw[key]).trim()) return String(raw[key]).trim();
+      }
+      // Also search raw_data keys case-insensitively
+      if (v.raw_data) {
+        const rawKeys = Object.keys(v.raw_data);
+        for (const searchKey of keys) {
+          const lower = searchKey.toLowerCase().replace(/[_\s]+/g, '');
+          const match = rawKeys.find(k => k.toLowerCase().replace(/[_\s]+/g, '') === lower);
+          if (match && v.raw_data[match] !== undefined && v.raw_data[match] !== null && String(v.raw_data[match]).trim()) {
+            return String(v.raw_data[match]).trim();
+          }
+        }
+      }
+      return '-';
+    };
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
         <div className="bg-slate-900 border-2 border-slate-700/50 w-full max-w-7xl max-h-[95vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
@@ -386,7 +371,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             </div>
             <button onClick={onClose} className="p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-xl transition-all active:scale-75"><X size={24} /></button>
           </div>
-
           {/* Tabs */}
           <div className="flex border-b border-slate-700 px-6">
             {(['overview', 'cargo', 'fleet', 'safety', 'driver'] as const).map(tab => (
@@ -403,7 +387,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
               </button>
             ))}
           </div>
-
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-slate-900/40">
             {detailTab === 'overview' && (
@@ -453,7 +436,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 </div>
               </div>
             )}
-
             {detailTab === 'cargo' && (
               <div>
                 <h3 className="text-xs font-bold text-indigo-400 uppercase mb-3">Cargo Carried</h3>
@@ -480,7 +462,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 </span>
               </div>
             )}
-
             {detailTab === 'fleet' && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -508,7 +489,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 </div>
               </div>
             )}
-
             {detailTab === 'safety' && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -521,7 +501,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 </div>
               </div>
             )}
-
             {detailTab === 'driver' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-slate-850/40 p-8 rounded-[2rem] border border-slate-800 flex flex-col gap-6 shadow-2xl">
@@ -533,15 +512,15 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Within 100 mi</span>
-                        <span className="text-lg font-black text-white">{val(v.inter_drivers_within100)}</span>
+                        <span className="text-lg font-black text-white">{rawVal('inter_drivers_within100', 'interstate_within_100_miles', 'Interstate within 100 miles', 'interstate_within100', 'inter_within_100')}</span>
                       </div>
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Beyond 100 mi</span>
-                        <span className="text-lg font-black text-white">{val(v.inter_drivers_beyond100)}</span>
+                        <span className="text-lg font-black text-white">{rawVal('inter_drivers_beyond100', 'interstate_beyond_100_miles', 'Interstate beyond 100 miles', 'interstate_beyond100', 'inter_beyond_100')}</span>
                       </div>
                       <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-indigo-400 font-black uppercase mb-1">Interstate Total</span>
-                        <span className="text-lg font-black text-indigo-300">{val(v.inter_drivers_total)}</span>
+                        <span className="text-lg font-black text-indigo-300">{rawVal('inter_drivers_total', 'interstate_total', 'Interstate Total', 'inter_total')}</span>
                       </div>
                     </div>
                   </div>
@@ -554,15 +533,15 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Within 100 mi</span>
-                        <span className="text-lg font-black text-white">{val(v.intra_drivers_within100)}</span>
+                        <span className="text-lg font-black text-white">{rawVal('intra_drivers_within100', 'intrastate_within_100_miles', 'Intrastate within 100 miles', 'intrastate_within100', 'intra_within_100')}</span>
                       </div>
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Beyond 100 mi</span>
-                        <span className="text-lg font-black text-white">{val(v.intra_drivers_beyond100)}</span>
+                        <span className="text-lg font-black text-white">{rawVal('intra_drivers_beyond100', 'intrastate_beyond_100_miles', 'Intrastate beyond 100 miles', 'intrastate_beyond100', 'intra_beyond_100')}</span>
                       </div>
                       <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-indigo-400 font-black uppercase mb-1">Intrastate Total</span>
-                        <span className="text-lg font-black text-indigo-300">{val(v.intra_drivers_total)}</span>
+                        <span className="text-lg font-black text-indigo-300">{rawVal('intra_drivers_total', 'intrastate_total', 'Intrastate Total', 'intra_total')}</span>
                       </div>
                     </div>
                   </div>
@@ -576,28 +555,28 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Avg Leased Drivers/Month</span>
-                        <span className="text-2xl font-black text-white">{val(v.avg_leased_drivers_month)}</span>
+                        <span className="text-2xl font-black text-white">{rawVal('avg_leased_drivers_month', 'avg_tld', 'avg_numer_trip_leased_drivers_month', 'Avg numer trip leased drivers / month', 'avg_trip_leased_drivers_month')}</span>
                       </div>
                       <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-emerald-400 font-black uppercase mb-1">Grand Total</span>
-                        <span className="text-2xl font-black text-emerald-300">{val(v.grand_total_drivers)}</span>
+                        <span className="text-2xl font-black text-emerald-300">{rawVal('grand_total_drivers', 'grand_total_interstate_and_intrastate', 'Grand Total (Interstate and Intrastate)', 'grand_total')}</span>
                       </div>
                     </div>
                     <div className="h-px bg-slate-800/50" />
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Total with CDL</span>
-                        <span className="text-2xl font-black text-white">{val(v.total_cdl_drivers)}</span>
+                        <span className="text-2xl font-black text-white">{rawVal('total_cdl_drivers', 'total_cdl', 'Total with CDL', 'total_with_cdl')}</span>
                       </div>
                       <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Total with Non-CDL</span>
-                        <span className="text-2xl font-black text-white">{val(v.total_non_cdl_drivers)}</span>
+                        <span className="text-2xl font-black text-white">{rawVal('total_non_cdl_drivers', 'Total with Non-CDL', 'total_with_non_cdl', 'total_noncdl')}</span>
                       </div>
                     </div>
                     <div className="h-px bg-slate-800/50" />
                     <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col items-center">
-                      <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Total Drivers (from record)</span>
-                      <span className="text-2xl font-black text-white">{val(v.total_drivers)}</span>
+                      <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Total Drivers</span>
+                      <span className="text-2xl font-black text-white">{rawVal('total_drivers', 'drivers', 'Drivers')}</span>
                     </div>
                   </div>
                 </div>
@@ -608,9 +587,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       </div>
     );
   };
-
   /* ── Main Render ───────────────────────────────────────────────────────── */
-
   return (
     <div className="p-4 md:p-8 h-screen flex flex-col overflow-hidden relative selection:bg-indigo-500/30">
       {/* Header */}
@@ -648,7 +625,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </button>
         </div>
       </div>
-
       {/* Scrape Panel (admin only) */}
       {isAdmin && showScrapePanel && (
         <div className="mb-4 bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5">
@@ -687,7 +663,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           )}
         </div>
       )}
-
       {/* Search Bar Row */}
       <div className="flex gap-3 mb-4">
         <div className="relative group w-48 shrink-0">
@@ -703,7 +678,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
           />
         </div>
-
         <div className="w-1/2 relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
             <Search size={18} />
@@ -717,7 +691,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
           />
         </div>
-
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`px-5 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 border text-sm ${showFilters ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}
@@ -725,7 +698,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           <Zap size={16} className={showFilters ? 'fill-white' : ''} />
           {showFilters ? 'Hide Filters' : 'Advanced Filters'}
         </button>
-
         <button
           onClick={applyFilters}
           disabled={isLoading}
@@ -738,7 +710,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           )}
         </button>
       </div>
-
       {/* Expandable Filters - Carrier Database style */}
       {showFilters && (
         <div className="mb-4 p-4 bg-slate-950/80 border border-slate-700/50 rounded-3xl overflow-y-auto max-h-[55vh] custom-scrollbar">
@@ -762,7 +733,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
               </div>
             </FilterGroup>
-
             <FilterGroup title="Carrier Operation" icon={<Activity size={12} />}>
               <div>
                 <FilterLabel>Carrier Operation</FilterLabel>
@@ -781,7 +751,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <MinMaxInputs nameMin="driversMin" nameMax="driversMax" valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
               </div>
             </FilterGroup>
-
             <FilterGroup title="Insurance Policy" icon={<Shield size={12} />}>
               <div>
                 <FilterLabel>Has BIPD Insurance</FilterLabel>
@@ -796,7 +765,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <FilterSelect name="bondOnFile" value={filters.bondOnFile} onChange={handleFilterChange} options={yesNoOptions} />
               </div>
             </FilterGroup>
-
             <FilterGroup title="Date Range" icon={<Calendar size={12} />}>
               <div>
                 <FilterLabel>From Date</FilterLabel>
@@ -810,7 +778,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
               </div>
             </FilterGroup>
           </div>
-
           <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-800">
             <button onClick={resetAll} className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-bold transition-all border border-slate-700">
               Reset All
@@ -822,7 +789,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </div>
         </div>
       )}
-
       {/* Results Table */}
       <div className="flex-1 overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/40 backdrop-blur-sm">
         <div className="overflow-auto h-full custom-scrollbar">
@@ -907,7 +873,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </table>
         </div>
       </div>
-
       {/* Pagination */}
       {!isLoading && ventures.length > 0 && (
         <div className="flex items-center justify-between mt-3 px-2">
@@ -932,7 +897,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </div>
         </div>
       )}
-
       {/* Detail Modal */}
       {selectedVenture && <DetailModal v={selectedVenture} onClose={() => setSelectedVenture(null)} />}
     </div>
