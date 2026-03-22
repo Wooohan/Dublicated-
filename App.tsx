@@ -8,6 +8,7 @@ import { Subscription } from './pages/Subscription';
 import { Landing } from './pages/Landing';
 import { AdminPanel } from './pages/AdminPanel';
 import { FMCSARegister } from './pages/FMCSARegister';
+import { NewVenture } from './pages/NewVenture';
 import { ViewState, User, CarrierData } from './types';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { updateUserInSupabase } from './services/userService';
@@ -130,6 +131,8 @@ const App: React.FC = () => {
             onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
           />
         );
+      case 'new-venture':
+        return <NewVenture user={user} />;
       case 'fmcsa-register':
         return <FMCSARegister />;
       case 'insurance-scraper':
