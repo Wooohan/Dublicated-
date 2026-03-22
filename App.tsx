@@ -54,8 +54,8 @@ const App: React.FC = () => {
   const handleCarrierSearch = async (filters: CarrierFiltersSupabase) => {
     try {
       setIsLoadingCarriers(true);
-      const carriers = await fetchCarriersFromSupabase(filters);
-      setAllCarriers(carriers || []);
+      const result = await fetchCarriersFromSupabase(filters);
+      setAllCarriers(result.data || []);
     } catch (error) {
       console.error("Failed to fetch carriers with filters:", error);
     } finally {
@@ -125,9 +125,6 @@ const App: React.FC = () => {
       case 'carrier-search':
         return (
           <CarrierSearch 
-            carriers={allCarriers}
-            onSearch={handleCarrierSearch}
-            isLoading={isLoadingCarriers}
             onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
           />
         );
@@ -166,7 +163,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
         />
         
-        <main className="flex-1 ml-64 relative bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-opacity-20 h-screen overflow-hidden">
+        <main className="flex-1 ml-64 relative bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20256%20256%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.7%22%20numOctaves%3D%224%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.05%22%2F%3E%3C%2Fsvg%3E')] bg-opacity-20 h-screen overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-96 bg-indigo-600/10 blur-[100px] pointer-events-none rounded-full -translate-y-1/2"></div>
           {user && renderContent()}
         </main>
