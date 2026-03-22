@@ -153,6 +153,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   // Data
   const [ventures, setVentures] = useState<NewVentureData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [filteredCount, setFilteredCount] = useState(0);
   const [availDates, setAvailDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   // Pagination
@@ -201,6 +202,14 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       const data = await fetchNewVenturesFromBackend({ ...f, limit: PAGE_SIZE, offset: page * PAGE_SIZE });
       setVentures(data);
       setCurrentPage(page);
+      // If first page and we got less than PAGE_SIZE, we know the exact filtered count
+      if (page === 0 && data.length < PAGE_SIZE) {
+        setFilteredCount(data.length);
+      } else {
+        // For paginated results, estimate filtered count
+        // If we got a full page, there are more records
+        setFilteredCount(page * PAGE_SIZE + data.length + (data.length === PAGE_SIZE ? 1 : 0));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -288,6 +297,12 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     { value: '', label: 'Any' },
     { value: 'true', label: 'Yes' },
     { value: 'false', label: 'No' },
+  ];
+  const activeStatusOptions = [
+    { value: '', label: 'Any' },
+    { value: 'active', label: 'Active' },
+    { value: 'authorization_pending', label: 'Authorization Pending for Property' },
+    { value: 'not_authorized', label: 'Not Authorized' },
   ];
   /* ── Detail Modal ──────────────────────────────────────────────────────── */
   const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void }> = ({ v, onClose }) => {
@@ -501,7 +516,18 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 </div>
               </div>
             )}
-            {detailTab === 'driver' && (
+            {detailTab === 'driver' && (() => {
+              // Parse numeric values for auto-calculation
+              const toNum = (s: string): number => { const n = parseInt(s, 10); return isNaN(n) ? 0 : n; };
+              const interWithin = rawVal('inter_drivers_within100', 'interstate_within_100_miles', 'Interstate within 100 miles', 'interstate_within100', 'inter_within_100');
+              const interBeyond = rawVal('inter_drivers_beyond100', 'interstate_beyond_100_miles', 'Interstate beyond 100 miles', 'interstate_beyond100', 'inter_beyond_100');
+              const intraWithin = rawVal('intra_drivers_within100', 'intrastate_within_100_miles', 'Intrastate within 100 miles', 'intrastate_within100', 'intra_within_100');
+              const intraBeyond = rawVal('intra_drivers_beyond100', 'intrastate_beyond_100_miles', 'Intrastate beyond 100 miles', 'intrastate_beyond100', 'intra_beyond_100');
+              // Auto-calculate totals from component values
+              const interTotal = toNum(interWithin) + toNum(interBeyond);
+              const intraTotal = toNum(intraWithin) + toNum(intraBeyond);
+              const grandTotal = interTotal + intraTotal;
+              return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-slate-850/40 p-8 rounded-[2rem] border border-slate-800 flex flex-col gap-6 shadow-2xl">
                   <div className="flex items-center gap-3">
@@ -512,15 +538,15 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Within 100 mi</span>
-                        <span className="text-lg font-black text-white">{rawVal('inter_drivers_within100', 'interstate_within_100_miles', 'Interstate within 100 miles', 'interstate_within100', 'inter_within_100')}</span>
+                        <span className="text-lg font-black text-white">{interWithin}</span>
                       </div>
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Beyond 100 mi</span>
-                        <span className="text-lg font-black text-white">{rawVal('inter_drivers_beyond100', 'interstate_beyond_100_miles', 'Interstate beyond 100 miles', 'interstate_beyond100', 'inter_beyond_100')}</span>
+                        <span className="text-lg font-black text-white">{interBeyond}</span>
                       </div>
                       <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-indigo-400 font-black uppercase mb-1">Interstate Total</span>
-                        <span className="text-lg font-black text-indigo-300">{rawVal('inter_drivers_total', 'interstate_total', 'Interstate Total', 'inter_total')}</span>
+                        <span className="text-lg font-black text-indigo-300">{interTotal}</span>
                       </div>
                     </div>
                   </div>
@@ -533,15 +559,15 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Within 100 mi</span>
-                        <span className="text-lg font-black text-white">{rawVal('intra_drivers_within100', 'intrastate_within_100_miles', 'Intrastate within 100 miles', 'intrastate_within100', 'intra_within_100')}</span>
+                        <span className="text-lg font-black text-white">{intraWithin}</span>
                       </div>
                       <div className="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1">Beyond 100 mi</span>
-                        <span className="text-lg font-black text-white">{rawVal('intra_drivers_beyond100', 'intrastate_beyond_100_miles', 'Intrastate beyond 100 miles', 'intrastate_beyond100', 'intra_beyond_100')}</span>
+                        <span className="text-lg font-black text-white">{intraBeyond}</span>
                       </div>
                       <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-indigo-400 font-black uppercase mb-1">Intrastate Total</span>
-                        <span className="text-lg font-black text-indigo-300">{rawVal('intra_drivers_total', 'intrastate_total', 'Intrastate Total', 'intra_total')}</span>
+                        <span className="text-lg font-black text-indigo-300">{intraTotal}</span>
                       </div>
                     </div>
                   </div>
@@ -559,7 +585,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                       </div>
                       <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex flex-col items-center">
                         <span className="text-[9px] text-emerald-400 font-black uppercase mb-1">Grand Total</span>
-                        <span className="text-2xl font-black text-emerald-300">{rawVal('grand_total_drivers', 'grand_total_interstate_and_intrastate', 'Grand Total (Interstate and Intrastate)', 'grand_total')}</span>
+                        <span className="text-2xl font-black text-emerald-300">{grandTotal}</span>
                       </div>
                     </div>
                     <div className="h-px bg-slate-800/50" />
@@ -581,7 +607,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                   </div>
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -596,7 +623,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-1 tracking-tight">New Ventures</h1>
           <p className="text-slate-400 text-sm">
             Showing <span className="text-indigo-400 font-bold">{ventures.length}</span> records
-            {ventures.length === 200 && !hasActiveFilters && !isLoading && <span className="text-slate-500"> of {totalCount.toLocaleString()} total (default 200 — use filters to search all)</span>}
+            {hasActiveFilters && ventures.length === PAGE_SIZE && <span className="text-slate-500"> (filtered results — refine filters for more specific results)</span>}
+            {!hasActiveFilters && ventures.length === PAGE_SIZE && <span className="text-slate-500"> of {totalCount.toLocaleString()} total (default 200 — use filters to search all)</span>}
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
@@ -663,9 +691,9 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           )}
         </div>
       )}
-      {/* Search Bar Row */}
+      {/* Search Bar Row - matches Carrier Database layout */}
       <div className="flex gap-3 mb-4">
-        <div className="relative group w-48 shrink-0">
+        <div className="relative group w-52 shrink-0">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
             <Hash size={16} />
           </div>
@@ -678,7 +706,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
           />
         </div>
-        <div className="w-1/2 relative group">
+        <div className="flex-1 relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
             <Search size={18} />
           </div>
@@ -717,7 +745,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             <FilterGroup title="Motor Carrier" icon={<Truck size={12} />}>
               <div>
                 <FilterLabel>Active</FilterLabel>
-                <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={yesNoOptions} />
+                <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={activeStatusOptions} />
               </div>
               <div>
                 <FilterLabel>State</FilterLabel>
@@ -825,7 +853,15 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 </tr>
               ) : (
                 ventures.map((v, i) => {
-                  const isAuth = v.operating_status?.toUpperCase().includes('AUTHORIZED') && !v.operating_status?.toUpperCase().includes('NOT');
+                  const statusUpper = (v.operating_status || '').toUpperCase();
+                  const isActive = statusUpper.includes('AUTHORIZED') && !statusUpper.includes('NOT') && !statusUpper.includes('PENDING');
+                  const isPending = statusUpper.includes('PENDING');
+                  const statusClass = isActive
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : isPending
+                      ? 'bg-amber-500/10 text-amber-400'
+                      : 'bg-red-500/10 text-red-400';
+                  const statusLabel = isActive ? 'Active' : val(v.operating_status);
                   return (
                     <tr
                       key={v.id || i}
@@ -839,10 +875,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                       <td className="px-4 py-3 text-slate-300 font-mono text-xs">{val(v.dot_number)}</td>
                       <td className="px-4 py-3 text-slate-300 font-mono text-xs">{val(v.docket_number)}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          isAuth ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                        }`}>
-                          {isAuth ? 'Active' : val(v.operating_status)}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusClass}`}>
+                          {statusLabel}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-300 text-xs">{val(v.phy_st)}</td>
@@ -877,7 +911,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       {!isLoading && ventures.length > 0 && (
         <div className="flex items-center justify-between mt-3 px-2">
           <p className="text-xs text-slate-500">
-            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length} of {totalCount.toLocaleString()}
+            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length}{!hasActiveFilters && totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : ''}
           </p>
           <div className="flex gap-2">
             <button
