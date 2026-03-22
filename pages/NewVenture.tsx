@@ -10,6 +10,7 @@ import {
   startNewVentureScrape,
   getNewVentureCount,
   getNewVentureDates,
+  fetchNewVentureDetail,
   NewVentureFilters,
 } from '../services/backendApiService';
 
@@ -171,8 +172,13 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const [availDates, setAvailDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Pagination
+  const PAGE_SIZE = 200;
+  const [currentPage, setCurrentPage] = useState(0);
+
   // Detail modal
   const [selectedVenture, setSelectedVenture] = useState<NewVentureData | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Filters
@@ -211,14 +217,24 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     loadVentures({});
   }, []);
 
-  const loadVentures = async (f: NewVentureFilters) => {
+  const loadVentures = async (f: NewVentureFilters, page = 0) => {
     setIsLoading(true);
     try {
-      const data = await fetchNewVenturesFromBackend(f);
+      const data = await fetchNewVenturesFromBackend({ ...f, limit: PAGE_SIZE, offset: page * PAGE_SIZE });
       setVentures(data);
+      setCurrentPage(page);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRowClick = async (v: NewVentureData) => {
+    if (!v.id) { setSelectedVenture(v); return; }
+    setLoadingDetail(true);
+    setSelectedVenture(v); // show modal immediately with list data
+    const detail = await fetchNewVentureDetail(v.id);
+    if (detail) setSelectedVenture(detail as NewVentureData);
+    setLoadingDetail(false);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -248,7 +264,9 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     return f;
   }, [docketSearch, nameSearch, dateFrom, dateTo, filters]);
 
-  const applyFilters = () => loadVentures(buildFilters());
+  const applyFilters = () => loadVentures(buildFilters(), 0);
+
+  const goToPage = (page: number) => loadVentures(buildFilters(), page);
 
   const resetAll = () => {
     setDocketSearch('');
@@ -262,7 +280,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       driversMin: '', driversMax: '',
       bipdOnFile: '', cargoOnFile: '', bondOnFile: '',
     });
-    loadVentures({});
+    loadVentures({}, 0);
   };
 
   const handleScrape = async () => {
@@ -303,6 +321,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
 
   const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void }> = ({ v, onClose }) => {
     const [detailTab, setDetailTab] = useState<'overview' | 'cargo' | 'fleet' | 'safety' | 'raw'>('overview');
+    const [rawData, setRawData] = useState<any>(null);
+    const [loadingRaw, setLoadingRaw] = useState(false);
 
     const CopyBtn: React.FC<{ text: string; field: string }> = ({ text, field }) => {
       if (!text || text === '-') return null;
@@ -481,9 +501,29 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             {detailTab === 'raw' && (
               <div>
                 <p className="text-xs text-slate-500 mb-3">Full raw data from BrokerSnapshot CSV export:</p>
-                <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 overflow-auto max-h-[40vh] custom-scrollbar">
-                  {JSON.stringify(v.raw_data || v, null, 2)}
-                </pre>
+                {!rawData && !loadingRaw && v.id && (
+                  <button
+                    onClick={async () => {
+                      setLoadingRaw(true);
+                      const detail = await fetchNewVentureDetail(v.id!);
+                      setRawData(detail?.raw_data || detail || v);
+                      setLoadingRaw(false);
+                    }}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all mb-3"
+                  >
+                    Load Raw Data
+                  </button>
+                )}
+                {loadingRaw && (
+                  <div className="flex items-center gap-2 text-slate-400 text-sm py-4">
+                    <Loader2 size={16} className="animate-spin" /> Loading raw data...
+                  </div>
+                )}
+                {(rawData || v.raw_data) && (
+                  <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 overflow-auto max-h-[40vh] custom-scrollbar">
+                    {JSON.stringify(rawData || v.raw_data || v, null, 2)}
+                  </pre>
+                )}
               </div>
             )}
           </div>
@@ -732,7 +772,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <tr
                       key={v.id || i}
                       className="border-b border-slate-800/50 hover:bg-indigo-500/5 transition-colors cursor-pointer"
-                      onClick={() => setSelectedVenture(v)}
+                      onClick={() => handleRowClick(v)}
                     >
                       <td className="px-4 py-3">
                         <div className="font-medium text-white truncate max-w-[200px]">{val(v.name)}</div>
@@ -761,7 +801,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                       <td className="px-4 py-3 text-slate-300 text-xs">{val(v.add_date)}</td>
                       <td className="px-4 py-3 text-center">
                         <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedVenture(v); }}
+                          onClick={(e) => { e.stopPropagation(); handleRowClick(v); }}
                           className="p-1.5 rounded-lg hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 transition-all"
                         >
                           <Eye size={16} />
@@ -775,6 +815,31 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {!isLoading && ventures.length > 0 && (
+        <div className="flex items-center justify-between mt-3 px-2">
+          <p className="text-xs text-slate-500">
+            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length} of {totalCount.toLocaleString()}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              Prev
+            </button>
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={ventures.length < PAGE_SIZE}
+              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       {selectedVenture && <DetailModal v={selectedVenture} onClose={() => setSelectedVenture(null)} />}
