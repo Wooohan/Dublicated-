@@ -145,16 +145,16 @@ export interface CarrierFiltersSupabase {
   mcNumber?: string;
   dotNumber?: string;
   legalName?: string;
-  active?: string;           // 'true' | 'false' | ''
+  active?: string;           
   state?: string;
-  hasEmail?: string;         // 'true' | 'false' | ''
-  hasBoc3?: string;          // 'true' | 'false' | ''
-  hasCompanyRep?: string;    // 'true' | 'false' | ''
+  hasEmail?: string;         
+  hasBoc3?: string;          
+  hasCompanyRep?: string;    
   yearsInBusinessMin?: number;
   yearsInBusinessMax?: number;
   classification?: string[];
   carrierOperation?: string[];
-  hazmat?: string;           // 'true' | 'false' | ''
+  hazmat?: string;           
   powerUnitsMin?: number;
   powerUnitsMax?: number;
   driversMin?: number;
@@ -163,9 +163,9 @@ export interface CarrierFiltersSupabase {
   insuranceRequired?: string[];
   bipdMin?: number;
   bipdMax?: number;
-  bipdOnFile?: string;       // '1' | '0' | ''
-  cargoOnFile?: string;      // '1' | '0' | ''
-  bondOnFile?: string;       // '1' | '0' | ''
+  bipdOnFile?: string;       
+  cargoOnFile?: string;      
+  bondOnFile?: string;       
   oosMin?: number;
   oosMax?: number;
   crashesMin?: number;
@@ -179,8 +179,9 @@ export interface CarrierFiltersSupabase {
   inspectionsMin?: number;
   inspectionsMax?: number;
   limit?: number;
+  offset?: number;
 }
-export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase = {}): Promise<any[]> => {
+export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase = {}): Promise<{ data: any[]; filtered_count: number }> => {
   try {
     const backendFilters: CarrierFilters = {
       mcNumber: filters.mcNumber,
@@ -220,9 +221,10 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       inspectionsMin: filters.inspectionsMin,
       inspectionsMax: filters.inspectionsMax,
       limit: filters.limit,
+      offset: filters.offset,
     };
-    const results = await fetchCarriersFromBackend(backendFilters);
-    return (results || []).map((record: any) => ({
+    const result = await fetchCarriersFromBackend(backendFilters);
+    const mapped = (result.data || []).map((record: any) => ({
       mcNumber: record.mc_number,
       dotNumber: record.dot_number,
       legalName: record.legal_name,
@@ -255,9 +257,10 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       createdAt: record.created_at,
       updatedAt: record.updated_at,
     }));
+    return { data: mapped, filtered_count: result.filtered_count };
   } catch (err: any) {
     console.error('Backend fetch error:', err);
-    return [];
+    return { data: [], filtered_count: 0 };
   }
 };
 export const deleteCarrierFromSupabase = async (mcNumber: string): Promise<boolean> => {
