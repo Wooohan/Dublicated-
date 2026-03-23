@@ -118,7 +118,7 @@ const App: React.FC = () => {
     const isAdmin = user.role === 'admin';
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard carriers={allCarriers} isLoading={isLoadingCarriers} />;
+        return <Dashboard isLoading={isLoadingCarriers} />;
       case 'scraper':
         return (
           <Scraper 
@@ -150,9 +150,9 @@ const App: React.FC = () => {
       case 'settings':
         return <SettingsPage user={user} />;
       case 'admin':
-        return isAdmin ? <AdminPanel /> : <Dashboard carriers={allCarriers} isLoading={isLoadingCarriers} />;
+        return isAdmin ? <AdminPanel /> : <Dashboard isLoading={isLoadingCarriers} />;
       default:
-        return <Dashboard carriers={allCarriers} isLoading={isLoadingCarriers} />;
+        return <Dashboard isLoading={isLoadingCarriers} />;
     }
   };
   if (!user) {
