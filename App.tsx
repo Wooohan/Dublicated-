@@ -50,7 +50,6 @@ const App: React.FC = () => {
   });
   
   const [allCarriers, setAllCarriers] = useState<CarrierData[]>([]);
-  const [totalCarrierCount, setTotalCarrierCount] = useState(0);
   const [isLoadingCarriers, setIsLoadingCarriers] = useState(false);
   useEffect(() => {
     if (user) {
@@ -62,7 +61,6 @@ const App: React.FC = () => {
       setIsLoadingCarriers(true);
       const result = await fetchCarriersFromSupabase(filters);
       setAllCarriers(result.data || []);
-      setTotalCarrierCount(result.filtered_count || 0);
     } catch (error) {
       console.error("Failed to fetch carriers with filters:", error);
     } finally {
@@ -120,7 +118,7 @@ const App: React.FC = () => {
     const isAdmin = user.role === 'admin';
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard carriers={allCarriers} totalInDb={totalCarrierCount} isLoading={isLoadingCarriers} />;
+        return <Dashboard carriers={allCarriers} isLoading={isLoadingCarriers} />;
       case 'scraper':
         return (
           <Scraper 
@@ -152,9 +150,9 @@ const App: React.FC = () => {
       case 'settings':
         return <SettingsPage user={user} />;
       case 'admin':
-        return isAdmin ? <AdminPanel /> : <Dashboard carriers={allCarriers} totalInDb={totalCarrierCount} isLoading={isLoadingCarriers} />;
+        return isAdmin ? <AdminPanel /> : <Dashboard carriers={allCarriers} isLoading={isLoadingCarriers} />;
       default:
-        return <Dashboard carriers={allCarriers} totalInDb={totalCarrierCount} isLoading={isLoadingCarriers} />;
+        return <Dashboard carriers={allCarriers} isLoading={isLoadingCarriers} />;
     }
   };
   if (!user) {
