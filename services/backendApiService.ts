@@ -335,6 +335,38 @@ export const getCarrierCountFromBackend = async (): Promise<number> => {
   }
 };
 
+export interface DashboardStats {
+  total: number;
+  active_carriers: number;
+  brokers: number;
+  with_email: number;
+  email_rate: string;
+  with_safety_rating: number;
+  with_insurance: number;
+  with_inspections: number;
+  with_crashes: number;
+  not_authorized: number;
+  other: number;
+}
+
+export const fetchDashboardStatsFromBackend = async (): Promise<DashboardStats> => {
+  const empty: DashboardStats = {
+    total: 0, active_carriers: 0, brokers: 0,
+    with_email: 0, email_rate: '0',
+    with_safety_rating: 0, with_insurance: 0,
+    with_inspections: 0, with_crashes: 0,
+    not_authorized: 0, other: 0,
+  };
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/carriers/dashboard-stats`, { headers: authHeadersGet() });
+    const data = await handleResponse(response);
+    return data || empty;
+  } catch (err: any) {
+    console.error('Backend dashboard stats error:', err);
+    return empty;
+  }
+};
+
 export const updateCarrierInsuranceInBackend = async (dotNumber: string, policies: any[]): Promise<boolean> => {
   try {
     const response = await fetch(`${BACKEND_URL}/api/carriers/${dotNumber}/insurance`, {
