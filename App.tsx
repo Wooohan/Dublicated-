@@ -175,7 +175,7 @@ const App: React.FC = () => {
               inset: 0,
               backgroundImage: "url('/noise.svg')",
               backgroundRepeat: 'repeat',
-              opacity: 0.60,
+              opacity: 0.40,
               pointerEvents: 'none',
               zIndex: 1,
             }}
