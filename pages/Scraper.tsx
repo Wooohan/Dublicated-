@@ -11,6 +11,9 @@ import {
   TaskStatus,
 } from '../services/backendService';
 const POLL_INTERVAL = 1500;
+const TASK_ID_KEY = 'hussfix_active_scraper_task_id';
+const RECONNECT_ATTEMPTS = 3;
+const RECONNECT_DELAY_MS = 1500;
 interface ScraperProps {
   user: User;
   onUpdateUsage: (count: number) => void;
@@ -46,25 +49,57 @@ export const Scraper: React.FC<ScraperProps> = ({ user, onUpdateUsage, onUpgrade
   }, [logs]);
   useEffect(() => {
     const reconnect = async () => {
-      try {
-        const active = await getActiveTask('scraper');
-        if (active.task_id && active.task) {
-          const status = active.task;
-          if (status.status === 'running' || status.status === 'stopping') {
-            taskIdRef.current = active.task_id;
-            setIsRunning(true);
-            setLogs(status.logs);
-            setProgress(status.progress);
-            setTotalDbSaved(status.dbSaved);
-            setTotalScrapedCount(status.scrapedCount || status.extracted || 0);
-            prevExtractedRef.current = status.extracted || 0;
-            if (status.recentData && status.recentData.length > 0) {
-              setScrapedData(status.recentData);
+      for (let attempt = 1; attempt <= RECONNECT_ATTEMPTS; attempt++) {
+        try {
+          const active = await getActiveTask('scraper');
+          if (active.task_id && active.task) {
+            const status = active.task;
+            if (status.status === 'running' || status.status === 'stopping') {
+              taskIdRef.current = active.task_id;
+              localStorage.setItem(TASK_ID_KEY, active.task_id);
+              setIsRunning(true);
+              setLogs(status.logs);
+              setProgress(status.progress);
+              setTotalDbSaved(status.dbSaved);
+              setTotalScrapedCount(status.scrapedCount || status.extracted || 0);
+              prevExtractedRef.current = status.extracted || 0;
+              if (status.recentData && status.recentData.length > 0) {
+                setScrapedData(status.recentData);
+              }
+              startPolling(active.task_id);
+              return;
             }
-            startPolling(active.task_id);
+          }
+          // No active task from backend – try localStorage fallback
+          const savedTaskId = localStorage.getItem(TASK_ID_KEY);
+          if (savedTaskId) {
+            const status = await getScraperStatus(savedTaskId);
+            if (status && (status.status === 'running' || status.status === 'stopping')) {
+              taskIdRef.current = savedTaskId;
+              setIsRunning(true);
+              setLogs(status.logs);
+              setProgress(status.progress);
+              setTotalDbSaved(status.dbSaved);
+              setTotalScrapedCount(status.scrapedCount || status.extracted || 0);
+              prevExtractedRef.current = status.extracted || 0;
+              if (status.recentData && status.recentData.length > 0) {
+                setScrapedData(status.recentData);
+              }
+              startPolling(savedTaskId);
+              return;
+            } else {
+              // Task is no longer running, clean up
+              localStorage.removeItem(TASK_ID_KEY);
+            }
+          }
+          return; // Backend responded fine, just no active task
+        } catch {
+          // Network error – retry after delay
+          if (attempt < RECONNECT_ATTEMPTS) {
+            await new Promise(r => setTimeout(r, RECONNECT_DELAY_MS));
           }
         }
-      } catch {}
+      }
     };
     reconnect();
     return () => {
@@ -93,6 +128,7 @@ export const Scraper: React.FC<ScraperProps> = ({ user, onUpdateUsage, onUpgrade
         pollRef.current = null;
         setIsRunning(false);
         taskIdRef.current = null;
+        localStorage.removeItem(TASK_ID_KEY);
         const fullData = await getScraperData(taskId);
         if (fullData && fullData.length > 0) {
           setScrapedData(fullData);
@@ -132,6 +168,7 @@ export const Scraper: React.FC<ScraperProps> = ({ user, onUpdateUsage, onUpgrade
           onlyAuthorized: config.onlyAuthorized,
         });
         taskIdRef.current = result.task_id;
+        localStorage.setItem(TASK_ID_KEY, result.task_id);
         setLogs(prev => [...prev, `Task ${result.task_id} started on server`]);
         startPolling(result.task_id);
       } catch (e: any) {
