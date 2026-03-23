@@ -28,7 +28,6 @@ export const FMCSARegister: React.FC = () => {
     'WITHDRAWAL',
     'REVOCATION',
     'TRANSFERS',
-    'GRANT DECISION NOTICES',
     'MISCELLANEOUS'
   ];
   function getTodayDate(): string {
