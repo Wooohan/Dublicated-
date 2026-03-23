@@ -274,7 +274,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
           <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-1 tracking-tight">Carrier Database</h1>
           <p className="text-slate-400 text-sm">
             Showing <span className="text-indigo-400 font-bold">{carriers.length}</span> records
-            {totalCount > 0 && <span className="text-white font-bold"> of {totalCount.toLocaleString()} total</span>}
+            {filteredCount > 0 && <span className="text-white font-bold"> of {filteredCount.toLocaleString()} total</span>}
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
