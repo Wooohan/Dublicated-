@@ -155,9 +155,9 @@ export const Scraper: React.FC<ScraperProps> = ({ user, onUpdateUsage, onUpgrade
       setProgress(0);
       setLogs([
         'Initializing Server-Side High-Speed Scraper...',
-        `Mode: ${config.useProxy ? 'PROXY + ASYNC (20 concurrent)' : 'Server-Side Direct (sequential)'}`,
+        `Mode: Server-Side Direct (no proxy hop)`,
         `Targeting ${config.recordCount} records starting at MC# ${config.startPoint}`,
-        'DB auto-sync every 50 records',
+        'DB auto-sync every 500 records (30s pause on sync)',
       ]);
       try {
         const result = await startScraperTask({
@@ -166,7 +166,6 @@ export const Scraper: React.FC<ScraperProps> = ({ user, onUpdateUsage, onUpgrade
           includeCarriers: config.includeCarriers,
           includeBrokers: config.includeBrokers,
           onlyAuthorized: config.onlyAuthorized,
-          useProxy: config.useProxy,
         });
         taskIdRef.current = result.task_id;
         localStorage.setItem(TASK_ID_KEY, result.task_id);
