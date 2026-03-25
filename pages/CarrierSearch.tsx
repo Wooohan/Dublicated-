@@ -733,9 +733,13 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                             <span className="text-xl font-black text-white">{p.coverageAmount}</span>
                           </div>
                           <p className="text-sm font-black text-slate-200 mb-4 truncate leading-tight group-hover/policy:text-indigo-300 transition-colors uppercase">{p.carrier}</p>
-                          <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono pt-4 border-t border-slate-800/50">
-                            <span className="bg-slate-850 px-2 py-1 rounded">#{p.policyNumber}</span>
-                            <span className="bg-slate-850 px-2 py-1 rounded">EFF: {p.effectiveDate}</span>
+                          <div className="flex gap-3 mb-4">
+                            {p.class && <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded-lg uppercase">Class: {p.class}</span>}
+                            {p.formCode && <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded-lg uppercase">Form: {p.formCode}</span>}
+                          </div>
+                          <div className="flex justify-between items-center pt-4 border-t border-slate-800/50">
+                            <span className="text-sm font-bold text-white">#{p.policyNumber}</span>
+                            <span className="text-sm font-bold text-white">EFF: {p.effectiveDate}</span>
                           </div>
                         </div>
                       ))
