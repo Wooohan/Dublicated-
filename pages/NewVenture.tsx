@@ -26,7 +26,6 @@ const US_STATES = [
 const CARRIER_OPERATIONS = [
   'Interstate', 'Intrastate Only (HM)', 'Intrastate Only (Non-HM)'
 ];
-/* ── Reusable sub-components ─────────────────────────────────────────────── */
 const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon, children, defaultOpen = true }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -91,7 +90,6 @@ const MultiSelect: React.FC<{
     </div>
   );
 };
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
 const val = (v: string | undefined | null): string => (v && v.trim()) ? v.trim() : '-';
 const cargoFields: { key: keyof NewVentureData; label: string }[] = [
   { key: 'genfreight', label: 'General Freight' },
@@ -147,23 +145,18 @@ function downloadNewVentureCSV(data: NewVentureData[]) {
   a.click();
   URL.revokeObjectURL(url);
 }
-/* ── Main Component ──────────────────────────────────────────────────────── */
 export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const isAdmin = user.role === 'admin';
-  // Data
   const [ventures, setVentures] = useState<NewVentureData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [filteredCount, setFilteredCount] = useState(0);
   const [availDates, setAvailDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  // Pagination
   const PAGE_SIZE = 200;
   const [currentPage, setCurrentPage] = useState(0);
-  // Detail modal
   const [selectedVenture, setSelectedVenture] = useState<NewVentureData | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  // Filters
   const [showFilters, setShowFilters] = useState(false);
   const [docketSearch, setDocketSearch] = useState('');
   const [nameSearch, setNameSearch] = useState('');
@@ -184,16 +177,13 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     cargoOnFile: '',
     bondOnFile: '',
   });
-  // Scrape
   const [showScrapePanel, setShowScrapePanel] = useState(false);
   const [scrapeDate, setScrapeDate] = useState('');
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<{ success: boolean; message: string } | null>(null);
-  // Load metadata on mount
   useEffect(() => {
     getNewVentureCount().then(setTotalCount);
     getNewVentureDates().then(setAvailDates);
-    // load default records
     loadVentures({});
   }, []);
   const loadVentures = async (f: NewVentureFilters, page = 0) => {
@@ -210,7 +200,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const handleRowClick = async (v: NewVentureData) => {
     if (!v.id) { setSelectedVenture(v); return; }
     setLoadingDetail(true);
-    setSelectedVenture(v); // show modal immediately with list data
+    setSelectedVenture(v);
     const detail = await fetchNewVentureDetail(v.id);
     if (detail) setSelectedVenture(detail as NewVentureData);
     setLoadingDetail(false);
@@ -264,7 +254,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       const res = await startNewVentureScrape(scrapeDate);
       if (res.success) {
         setScrapeResult({ success: true, message: `Scraped ${res.scraped} records, saved ${res.saved} to database.` });
-        // Reload
         getNewVentureCount().then(setTotalCount);
         getNewVentureDates().then(setAvailDates);
         loadVentures(buildFilters());
@@ -298,7 +287,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     { value: 'authorization_pending', label: 'Authorization Pending' },
     { value: 'not_authorized', label: 'Not Authorized' },
   ];
-  /* ── Detail Modal ──────────────────────────────────────────────────────── */
   const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void; isLoading?: boolean }> = ({ v, onClose, isLoading: isDetailLoading }) => {
     const [detailTab, setDetailTab] = useState<'overview' | 'cargo' | 'fleet' | 'safety' | 'driver'>('overview');
     const CopyBtn: React.FC<{ text: string; field: string }> = ({ text, field }) => {
@@ -322,17 +310,13 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       const v2 = v[cf.key] as string | undefined;
       return v2 && v2.trim().toUpperCase() === 'X';
     });
-    // Helper to get driver data from raw_data or top-level fields
     const rawVal = (...keys: string[]): string => {
       const raw = v.raw_data || (v as Record<string, any>);
       for (const key of keys) {
-        // Check top-level typed field
         const typedVal = (v as Record<string, any>)[key];
         if (typedVal !== undefined && typedVal !== null && String(typedVal).trim()) return String(typedVal).trim();
-        // Check raw_data with exact key
         if (raw[key] !== undefined && raw[key] !== null && String(raw[key]).trim()) return String(raw[key]).trim();
       }
-      // Also search raw_data keys case-insensitively
       if (v.raw_data) {
         const rawKeys = Object.keys(v.raw_data);
         for (const searchKey of keys) {
@@ -348,7 +332,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
         <div className="bg-slate-900 border-2 border-slate-700/50 w-full max-w-7xl max-h-[95vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
-          {/* Header */}
           <div className="p-4 md:p-5 border-b border-slate-800 bg-slate-850/30 flex justify-between items-start">
             <div className="flex gap-4 md:gap-6 items-center">
               <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/10">
@@ -380,7 +363,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             </div>
             <button onClick={onClose} className="p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-xl transition-all active:scale-75"><X size={24} /></button>
           </div>
-          {/* Tabs */}
           <div className="flex border-b border-slate-700 px-6">
             {(['overview', 'cargo', 'fleet', 'safety', 'driver'] as const).map(tab => (
               <button
@@ -396,7 +378,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
               </button>
             ))}
           </div>
-          {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-slate-900/40 relative">
             {isDetailLoading && (
               <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-b-[2.5rem]">
@@ -517,13 +498,11 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
               </div>
             )}
             {detailTab === 'driver' && (() => {
-              // Parse numeric values for auto-calculation
               const toNum = (s: string): number => { const n = parseInt(s, 10); return isNaN(n) ? 0 : n; };
               const interWithin = rawVal('inter_drivers_within100', 'interstate_within_100_miles', 'Interstate within 100 miles', 'interstate_within100', 'inter_within_100');
               const interBeyond = rawVal('inter_drivers_beyond100', 'interstate_beyond_100_miles', 'Interstate beyond 100 miles', 'interstate_beyond100', 'inter_beyond_100');
               const intraWithin = rawVal('intra_drivers_within100', 'intrastate_within_100_miles', 'Intrastate within 100 miles', 'intrastate_within100', 'intra_within_100');
               const intraBeyond = rawVal('intra_drivers_beyond100', 'intrastate_beyond_100_miles', 'Intrastate beyond 100 miles', 'intrastate_beyond100', 'intra_beyond_100');
-              // Auto-calculate totals from component values
               const interTotal = toNum(interWithin) + toNum(interBeyond);
               const intraTotal = toNum(intraWithin) + toNum(intraBeyond);
               const grandTotal = interTotal + intraTotal;
@@ -614,10 +593,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       </div>
     );
   };
-  /* ── Main Render ───────────────────────────────────────────────────────── */
   return (
     <div className="p-4 md:p-8 h-screen flex flex-col overflow-hidden relative selection:bg-indigo-500/30">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-1 tracking-tight">New Ventures</h1>
@@ -653,7 +630,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </button>
         </div>
       </div>
-      {/* Scrape Panel (admin only) */}
       {isAdmin && showScrapePanel && (
         <div className="mb-4 bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
@@ -691,7 +667,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           )}
         </div>
       )}
-      {/* Search Bar Row - matches Carrier Database layout */}
       <div className="flex gap-3 mb-4">
         <div className="relative group w-52 shrink-0">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
@@ -738,7 +713,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           )}
         </button>
       </div>
-      {/* Expandable Filters - Carrier Database style */}
       {showFilters && (
         <div className="mb-4 p-4 bg-slate-950/80 border border-slate-700/50 rounded-3xl overflow-y-auto max-h-[55vh] custom-scrollbar">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -817,7 +791,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </div>
         </div>
       )}
-      {/* Results Table */}
       <div className="flex-1 overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/40 backdrop-blur-sm">
         <div className="overflow-auto h-full custom-scrollbar">
           <table className="w-full text-sm">
@@ -907,7 +880,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </table>
         </div>
       </div>
-      {/* Pagination */}
       {!isLoading && ventures.length > 0 && (
         <div className="flex items-center justify-between mt-3 px-2">
           <p className="text-xs text-white font-bold">
@@ -931,7 +903,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
           </div>
         </div>
       )}
-      {/* Detail Modal */}
       {selectedVenture && <DetailModal v={selectedVenture} onClose={() => setSelectedVenture(null)} isLoading={loadingDetail} />}
     </div>
   );
