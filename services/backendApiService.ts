@@ -812,3 +812,26 @@ export const deleteNewVenture = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+export interface ActiveInsurancePolicy {
+  type: string;
+  class: string;
+  coverageAmount: string;
+  policyNumber: string;
+  effectiveDate: string;
+  carrier: string;
+  formCode: string;
+}
+
+export const fetchActiveInsurance = async (mcNumber: string): Promise<ActiveInsurancePolicy[]> => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/carriers/${mcNumber}/active-insurance`, {
+      headers: authHeadersGet(),
+    });
+    const data = await handleResponse(response);
+    return data.policies || [];
+  } catch (err: any) {
+    console.error('Backend fetch active insurance error:', err);
+    return [];
+  }
+};
