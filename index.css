@@ -18,3 +18,11 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* Fix date picker icon visibility on dark backgrounds */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+input[type="date"] {
+  color-scheme: dark;
+}
