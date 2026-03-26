@@ -8,7 +8,8 @@ import {
   deleteUserFromSupabase,
   fetchBlockedIPsFromSupabase,
   blockIPInSupabase,
-  unblockIPInSupabase
+  unblockIPInSupabase,
+  fetchAdminInit
 } from '../services/userService';
 
 const formatLastActive = (lastActive: string): string => {
@@ -55,10 +56,7 @@ export const AdminPanel: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [usersData, blockedIPsData] = await Promise.all([
-        fetchUsersFromSupabase(),
-        fetchBlockedIPsFromSupabase()
-      ]);
+      const { users: usersData, blockedIPs: blockedIPsData } = await fetchAdminInit();
       setUsers(usersData);
       setBlockedIPs(blockedIPsData);
     } catch (err) {
