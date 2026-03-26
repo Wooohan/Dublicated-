@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, ChevronRight, Check, Shield, Zap, Lock } from 'lucide-react';
 import { User } from '../types';
-import { updateUserInSupabase, isIPBlocked } from '../services/userService';
+import { updateUserInSupabase } from '../services/userService';
 import { loginUser, registerUser } from '../services/backendApiService';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 interface LandingProps {
@@ -25,21 +25,8 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
     setError(null);
     setIsLoading(true);
     try {
-      let clientIp = '';
-      try {
-        const ipRes = await fetch(`${BACKEND_URL}/api/get-ip`);
-        const ipData = await ipRes.json();
-        clientIp = ipData.ip || '';
-      } catch {
-        clientIp = '';
-      }
-      if (clientIp) {
-        const blocked = await isIPBlocked(clientIp);
-        if (blocked) {
-          setError("Your IP address has been blocked. Please contact support.");
-          return;
-        }
-      }
+      // IP blocking is now handled server-side via middleware.
+      // The login endpoint returns client_ip so no separate get-ip call needed.
       if (authMode === 'register') {
         if (password.length < 8) {
           setError("Password must be at least 8 characters long.");
@@ -57,6 +44,7 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
           return;
         }
         const row = result.user;
+        const clientIp = result.client_ip || row.ip_address || '';
         const loggedInUser: User = {
           id: row.user_id,
           name: row.name,
@@ -74,10 +62,10 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
           setError("Your account has been blocked. Please contact support.");
           return;
         }
-        updateUserInSupabase({ ...loggedInUser, isOnline: true, lastActive: 'Now', ipAddress: clientIp || loggedInUser.ipAddress }).catch(err => console.error('Failed to sync login status:', err));
+        updateUserInSupabase({ ...loggedInUser, isOnline: true, lastActive: 'Now', ipAddress: loggedInUser.ipAddress }).catch(err => console.error('Failed to sync login status:', err));
         onLogin(loggedInUser);
       } else {
-        const result = await registerUser(name, email.toLowerCase(), password, `user-${Date.now()}`, clientIp);
+        const result = await registerUser(name, email.toLowerCase(), password, `user-${Date.now()}`, '');
         if (!result) {
           setError("Failed to create account. Email may already be in use.");
           return;
@@ -92,7 +80,7 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
           dailyLimit: row.daily_limit || 50,
           recordsExtractedToday: row.records_extracted_today || 0,
           lastActive: 'Now',
-          ipAddress: row.ip_address || clientIp,
+          ipAddress: row.ip_address || '',
           isOnline: true,
           isBlocked: false,
         };
