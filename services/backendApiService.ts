@@ -496,17 +496,34 @@ export const createUserInBackend = async (user: User, passwordHash?: string): Pr
 
 export const updateUserInBackend = async (user: User): Promise<boolean> => {
   try {
-    const userData = {
-      name: user.name,
-      role: user.role,
-      plan: user.plan,
-      daily_limit: user.dailyLimit,
-      records_extracted_today: user.recordsExtractedToday,
-      last_active: user.lastActive,
-      ip_address: user.ipAddress,
-      is_online: user.isOnline,
-      is_blocked: user.isBlocked,
-    };
+    // Check if the current user is admin to decide which fields to send.
+    // Non-admin users can only update their own non-sensitive fields.
+    const currentUserStr = localStorage.getItem('hussfix_user');
+    const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+    const isAdmin = currentUser?.role === 'admin';
+
+    let userData: Record<string, unknown>;
+    if (isAdmin) {
+      userData = {
+        name: user.name,
+        role: user.role,
+        plan: user.plan,
+        daily_limit: user.dailyLimit,
+        records_extracted_today: user.recordsExtractedToday,
+        last_active: user.lastActive,
+        ip_address: user.ipAddress,
+        is_online: user.isOnline,
+        is_blocked: user.isBlocked,
+      };
+    } else {
+      // Non-admin self-update: only send allowed fields
+      userData = {
+        name: user.name,
+        is_online: user.isOnline,
+        last_active: user.lastActive,
+        ip_address: user.ipAddress,
+      };
+    }
 
     const response = await fetch(`${BACKEND_URL}/api/users/${user.id}`, {
       method: 'PUT',
