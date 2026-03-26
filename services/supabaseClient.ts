@@ -145,6 +145,7 @@ export interface CarrierFiltersSupabase {
   mcNumber?: string;
   dotNumber?: string;
   legalName?: string;
+  entityType?: string;
   active?: string;           
   state?: string;
   hasEmail?: string;         
@@ -163,6 +164,8 @@ export interface CarrierFiltersSupabase {
   insuranceRequired?: string[];
   bipdMin?: number;
   bipdMax?: number;
+  insEffectiveDateFrom?: string;
+  insEffectiveDateTo?: string;
   bipdOnFile?: string;       
   cargoOnFile?: string;      
   bondOnFile?: string;       
@@ -187,6 +190,7 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       mcNumber: filters.mcNumber,
       dotNumber: filters.dotNumber,
       legalName: filters.legalName,
+      entityType: filters.entityType,
       active: filters.active,
       state: filters.state,
       hasEmail: filters.hasEmail,
@@ -203,6 +207,8 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       insuranceRequired: filters.insuranceRequired,
       bipdMin: filters.bipdMin,
       bipdMax: filters.bipdMax,
+      insEffectiveDateFrom: filters.insEffectiveDateFrom,
+      insEffectiveDateTo: filters.insEffectiveDateTo,
       bipdOnFile: filters.bipdOnFile,
       cargoOnFile: filters.cargoOnFile,
       bondOnFile: filters.bondOnFile,
