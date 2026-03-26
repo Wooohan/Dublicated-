@@ -40,6 +40,16 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
           return;
         }
       }
+      if (authMode === 'register') {
+        if (password.length < 8) {
+          setError("Password must be at least 8 characters long.");
+          return;
+        }
+        if (!/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
+          setError("Password must contain at least one letter and one number.");
+          return;
+        }
+      }
       if (authMode === 'login') {
         const result = await loginUser(email, password);
         if (!result) {
