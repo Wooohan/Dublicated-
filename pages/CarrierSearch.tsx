@@ -142,6 +142,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
   const [expandedInspection, setExpandedInspection] = useState<string | null>(null);
   const [activeInsurance, setActiveInsurance] = useState<ActiveInsuranceFiling[]>([]);
   const [filters, setFilters] = useState({
+    entityType: '',
     active: '',
     state: [] as string[],
     dot: '',
@@ -159,6 +160,8 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     driversMax: '',
     cargo: [] as string[],
     insuranceRequired: [] as string[],
+    insEffectiveDateFrom: '',
+    insEffectiveDateTo: '',
     bipdMin: '',
     bipdMax: '',
     bipdOnFile: '',
@@ -209,6 +212,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     if (mcSearchTerm.trim()) f.mcNumber = mcSearchTerm.trim();
     if (nameSearchTerm.trim()) f.legalName = nameSearchTerm.trim();
     if (filters.dot.trim()) f.dotNumber = filters.dot.trim();
+    if (filters.entityType) f.entityType = filters.entityType;
     if (filters.active) f.active = filters.active;
     if (filters.state.length > 0) f.state = filters.state.join('|'); 
     if (filters.hasEmail) f.hasEmail = filters.hasEmail;
@@ -221,6 +225,8 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     if (filters.powerUnitsMax !== '') f.powerUnitsMax = parseInt(filters.powerUnitsMax);
     if (filters.driversMin !== '') f.driversMin = parseInt(filters.driversMin);
     if (filters.driversMax !== '') f.driversMax = parseInt(filters.driversMax);
+    if (filters.insEffectiveDateFrom) f.insEffectiveDateFrom = filters.insEffectiveDateFrom;
+    if (filters.insEffectiveDateTo) f.insEffectiveDateTo = filters.insEffectiveDateTo;
     if (filters.bipdMin !== '') f.bipdMin = parseInt(filters.bipdMin);
     if (filters.bipdMax !== '') f.bipdMax = parseInt(filters.bipdMax);
     
@@ -253,11 +259,11 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     setMcSearchTerm('');
     setNameSearchTerm('');
     setFilters({
-      active: '', state: [], dot: '', yearsInBusinessMin: '', yearsInBusinessMax: '',
+      entityType: '', active: '', state: [], dot: '', yearsInBusinessMin: '', yearsInBusinessMax: '',
       hasEmail: '', hasBoc3: '', hasCompanyRep: '',
       classification: [], carrierOperation: [], hazmat: '',
       powerUnitsMin: '', powerUnitsMax: '', driversMin: '', driversMax: '', cargo: [],
-      insuranceRequired: [], bipdMin: '', bipdMax: '', bipdOnFile: '', cargoOnFile: '', bondOnFile: '',
+      insuranceRequired: [], insEffectiveDateFrom: '', insEffectiveDateTo: '', bipdMin: '', bipdMax: '', bipdOnFile: '', cargoOnFile: '', bondOnFile: '',
       oosMin: '', oosMax: '', crashesMin: '', crashesMax: '',
       injuriesMin: '', injuriesMax: '', fatalitiesMin: '', fatalitiesMax: '',
       towawayMin: '', towawayMax: '', inspectionsMin: '', inspectionsMax: '',
@@ -352,6 +358,14 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <FilterGroup title="Motor Carrier" icon={<Truck size={12} />}>
               <div>
+                <FilterLabel>Entity Type</FilterLabel>
+                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={[
+                  { value: '', label: 'All' },
+                  { value: 'CARRIER', label: 'Carrier' },
+                  { value: 'BROKER', label: 'Broker' },
+                ]} />
+              </div>
+              <div>
                 <FilterLabel>Active</FilterLabel>
                 <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={yesNoOptions} />
               </div>
@@ -416,7 +430,16 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                 <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
               </div>
               <div>
-                <FilterLabel>Required BIPD</FilterLabel>
+                <FilterLabel>Insurance Effective Date</FilterLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="date" name="insEffectiveDateFrom" value={filters.insEffectiveDateFrom} onChange={handleFilterChange}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                  <input type="date" name="insEffectiveDateTo" value={filters.insEffectiveDateTo} onChange={handleFilterChange}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
+                <FilterLabel>Required Amount</FilterLabel>
                 <MinMaxInputs nameMin="bipdMin" nameMax="bipdMax"
                   valueMin={filters.bipdMin} valueMax={filters.bipdMax} onChange={handleFilterChange} />
               </div>
@@ -480,20 +503,21 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Legal Name</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">DOT Number</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Status</th>
+                <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Entity</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500 text-right">View</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20">
+                  <td colSpan={6} className="text-center py-20">
                     <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto mb-3" />
                     <p className="text-slate-400 text-sm">Loading carriers...</p>
                   </td>
                 </tr>
               ) : carriers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20">
+                  <td colSpan={6} className="text-center py-20">
                     <Database className="w-10 h-10 text-slate-700 mx-auto mb-3" />
                     <p className="text-slate-500 text-sm">No results found. Try adjusting your filters.</p>
                   </td>
@@ -509,6 +533,11 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                     <td className="p-4">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-tight border ${carrier.status?.includes('AUTHORIZED') && !carrier.status?.includes('NOT') ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
                         {carrier.status?.includes('AUTHORIZED') && !carrier.status?.includes('NOT') ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-tight border ${carrier.entityType?.toUpperCase().includes('BROKER') ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                        {carrier.entityType?.toUpperCase().includes('BROKER') ? 'BROKER' : 'CARRIER'}
                       </span>
                     </td>
                     <td className="p-4 text-right">
@@ -585,9 +614,9 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                       </span>
                       {copiedField === 'mc' ? <Check size={12} className="text-white" /> : <Copy size={12} className="text-white/60" />}
                     </button>
-                    <div className="bg-[#10B981] text-white rounded-lg px-3 py-1.5 shadow-md">
+                    <div className={`${selectedCarrier.entityType?.toUpperCase().includes('BROKER') ? 'bg-orange-500' : 'bg-emerald-500'} text-white rounded-lg px-3 py-1.5 shadow-md`}>
                       <span className="font-black text-[10px] md:text-xs uppercase tracking-wide">
-                        {selectedCarrier.entityType || 'CARRIER'}
+                        {selectedCarrier.entityType?.toUpperCase().includes('BROKER') ? 'BROKER' : 'CARRIER'}
                       </span>
                     </div>
                   </div>
