@@ -169,6 +169,9 @@ export interface CarrierFiltersSupabase {
   bipdOnFile?: string;       
   cargoOnFile?: string;      
   bondOnFile?: string;       
+  trustFundOnFile?: string;
+  insCancellationDateFrom?: string;
+  insCancellationDateTo?: string;
   oosMin?: number;
   oosMax?: number;
   crashesMin?: number;
@@ -212,6 +215,9 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       bipdOnFile: filters.bipdOnFile,
       cargoOnFile: filters.cargoOnFile,
       bondOnFile: filters.bondOnFile,
+      trustFundOnFile: filters.trustFundOnFile,
+      insCancellationDateFrom: filters.insCancellationDateFrom,
+      insCancellationDateTo: filters.insCancellationDateTo,
       yearsInBusinessMin: filters.yearsInBusinessMin,
       yearsInBusinessMax: filters.yearsInBusinessMax,
       oosMin: filters.oosMin,
