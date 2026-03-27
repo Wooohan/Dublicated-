@@ -236,6 +236,9 @@ export interface CarrierFilters {
   bipdOnFile?: string;
   cargoOnFile?: string;
   bondOnFile?: string;
+  trustFundOnFile?: string;
+  insCancellationDateFrom?: string;
+  insCancellationDateTo?: string;
   oosMin?: number;
   oosMax?: number;
   crashesMin?: number;
@@ -281,6 +284,9 @@ export const fetchCarriersFromBackend = async (filters: CarrierFilters = {}): Pr
     if (filters.bipdOnFile) params.append('bipd_on_file', filters.bipdOnFile);
     if (filters.cargoOnFile) params.append('cargo_on_file', filters.cargoOnFile);
     if (filters.bondOnFile) params.append('bond_on_file', filters.bondOnFile);
+    if (filters.trustFundOnFile) params.append('trust_fund_on_file', filters.trustFundOnFile);
+    if (filters.insCancellationDateFrom) params.append('ins_cancellation_date_from', filters.insCancellationDateFrom);
+    if (filters.insCancellationDateTo) params.append('ins_cancellation_date_to', filters.insCancellationDateTo);
     if (filters.yearsInBusinessMin !== undefined) params.append('years_in_business_min', String(filters.yearsInBusinessMin));
     if (filters.yearsInBusinessMax !== undefined) params.append('years_in_business_max', String(filters.yearsInBusinessMax));
     if (filters.oosMin !== undefined) params.append('oos_min', String(filters.oosMin));
