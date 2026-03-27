@@ -445,6 +445,15 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                 </div>
               </div>
               <div>
+                <FilterLabel>Insurance Cancellation Date</FilterLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="date" name="insCancellationDateFrom" value={filters.insCancellationDateFrom} onChange={handleFilterChange}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                  <input type="date" name="insCancellationDateTo" value={filters.insCancellationDateTo} onChange={handleFilterChange}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
                 <FilterLabel>Required Amount</FilterLabel>
                 <MinMaxInputs nameMin="bipdMin" nameMax="bipdMax"
                   valueMin={filters.bipdMin} valueMax={filters.bipdMax} onChange={handleFilterChange} />
@@ -464,15 +473,6 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               <div>
                 <FilterLabel>Has Trust Fund Insurance</FilterLabel>
                 <FilterSelect name="trustFundOnFile" value={filters.trustFundOnFile} onChange={handleFilterChange} options={yesNoNumOptions} />
-              </div>
-              <div>
-                <FilterLabel>Insurance Cancellation Date</FilterLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="date" name="insCancellationDateFrom" value={filters.insCancellationDateFrom} onChange={handleFilterChange}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
-                  <input type="date" name="insCancellationDateTo" value={filters.insCancellationDateTo} onChange={handleFilterChange}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
-                </div>
               </div>
             </FilterGroup>
             <FilterGroup title="Safety" icon={<ShieldCheck size={12} />}>
