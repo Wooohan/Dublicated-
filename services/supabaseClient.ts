@@ -8,7 +8,6 @@ import {
   updateCarrierSafetyInBackend,
   CarrierFilters,
 } from './backendApiService';
-
 export interface CarrierRecord {
   id?: string;
   mc_number: string;
@@ -43,7 +42,6 @@ export interface CarrierRecord {
   created_at?: string;
   updated_at?: string;
 }
-
 export const saveCarrierToSupabase = async (
   carrier: any
 ): Promise<{ success: boolean; error?: string; data?: any }> => {
@@ -94,7 +92,6 @@ export const saveCarrierToSupabase = async (
     };
   }
 };
-
 export const saveCarriersToSupabase = async (
   carriers: any[]
 ): Promise<{ success: boolean; error?: string; saved: number; failed: number }> => {
@@ -184,6 +181,10 @@ export interface CarrierFiltersSupabase {
   towawayMax?: number;
   inspectionsMin?: number;
   inspectionsMax?: number;
+  insuranceCompany?: string[];
+  renewalPolicyMonths?: string;
+  renewalDateFrom?: string;
+  renewalDateTo?: string;
   limit?: number;
   offset?: number;
 }
@@ -232,6 +233,10 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       towawayMax: filters.towawayMax,
       inspectionsMin: filters.inspectionsMin,
       inspectionsMax: filters.inspectionsMax,
+      insuranceCompany: filters.insuranceCompany,
+      renewalPolicyMonths: filters.renewalPolicyMonths,
+      renewalDateFrom: filters.renewalDateFrom,
+      renewalDateTo: filters.renewalDateTo,
       limit: filters.limit,
       offset: filters.offset,
     };
