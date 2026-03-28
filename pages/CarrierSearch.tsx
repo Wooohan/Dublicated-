@@ -34,6 +34,29 @@ const CARGO_TYPES = [
   'Construction','Water Well','Other'
 ];
 const INSURANCE_REQUIRED_TYPES = ['BI&PD','CARGO','BOND','TRUST FUND'];
+
+const INSURANCE_COMPANIES = [
+  'GREAT WEST CASUALTY',
+  'UNITED FINANCIAL CASUALTY',
+  'GEICO MARINE',
+  'NORTHLAND INSURANCE',
+  'ARTISAN & TRUCKERS',
+  'CANAL INSURANCE',
+  'PROGRESSIVE',
+  'BERKSHIRE HATHAWAY',
+  'OLD REPUBLIC',
+  'SENTRY',
+  'TRAVELERS',
+];
+
+const RENEWAL_MONTH_OPTIONS = [
+  { value: '', label: 'All' },
+  { value: '1', label: '1st Month' },
+  { value: '2', label: '2nd Month' },
+  { value: '3', label: '3rd Month' },
+  { value: '4', label: '4th Month' },
+  { value: '5', label: '5th Month' },
+];
 const calculateYearsInBusiness = (mcs150Date: string | undefined): number | null => {
   if (!mcs150Date || mcs150Date === 'N/A') return null;
   try {
@@ -160,8 +183,12 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     driversMax: '',
     cargo: [] as string[],
     insuranceRequired: [] as string[],
+    insuranceCompany: [] as string[],
     insEffectiveDateFrom: '',
     insEffectiveDateTo: '',
+    renewalPolicyMonths: '',
+    renewalDateFrom: '',
+    renewalDateTo: '',
     bipdMin: '',
     bipdMax: '',
     bipdOnFile: '',
@@ -249,6 +276,10 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     if (filters.carrierOperation.length > 0) f.carrierOperation = filters.carrierOperation;
     if (filters.hazmat) f.hazmat = filters.hazmat;
     if (filters.cargo.length > 0) f.cargo = filters.cargo;
+    if (filters.insuranceCompany.length > 0) f.insuranceCompany = filters.insuranceCompany;
+    if (filters.renewalPolicyMonths) f.renewalPolicyMonths = filters.renewalPolicyMonths;
+    if (filters.renewalDateFrom) f.renewalDateFrom = filters.renewalDateFrom;
+    if (filters.renewalDateTo) f.renewalDateTo = filters.renewalDateTo;
     if (filters.insuranceRequired.length > 0) f.insuranceRequired = filters.insuranceRequired;
     if (filters.bipdOnFile) f.bipdOnFile = filters.bipdOnFile;
     if (filters.cargoOnFile) f.cargoOnFile = filters.cargoOnFile;
@@ -269,7 +300,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
       hasEmail: '', hasBoc3: '', hasCompanyRep: '',
       classification: [], carrierOperation: [], hazmat: '',
       powerUnitsMin: '', powerUnitsMax: '', driversMin: '', driversMax: '', cargo: [],
-      insuranceRequired: [], insEffectiveDateFrom: '', insEffectiveDateTo: '', insCancellationDateFrom: '', insCancellationDateTo: '', bipdMin: '', bipdMax: '', bipdOnFile: '', cargoOnFile: '', bondOnFile: '', trustFundOnFile: '',
+      insuranceCompany: [], insuranceRequired: [], insEffectiveDateFrom: '', insEffectiveDateTo: '', renewalPolicyMonths: '', renewalDateFrom: '', renewalDateTo: '', insCancellationDateFrom: '', insCancellationDateTo: '', bipdMin: '', bipdMax: '', bipdOnFile: '', cargoOnFile: '', bondOnFile: '', trustFundOnFile: '',
       oosMin: '', oosMax: '', crashesMin: '', crashesMax: '',
       injuriesMin: '', injuriesMax: '', fatalitiesMin: '', fatalitiesMax: '',
       towawayMin: '', towawayMax: '', inspectionsMin: '', inspectionsMax: '',
@@ -434,6 +465,23 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               <div>
                 <FilterLabel>Required</FilterLabel>
                 <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Insurance Company</FilterLabel>
+                <MultiSelect options={INSURANCE_COMPANIES} selected={filters.insuranceCompany} onChange={v => setFilters(p => ({ ...p, insuranceCompany: v }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Renewal Policy Monthly</FilterLabel>
+                <FilterSelect name="renewalPolicyMonths" value={filters.renewalPolicyMonths} onChange={handleFilterChange} options={RENEWAL_MONTH_OPTIONS} />
+              </div>
+              <div>
+                <FilterLabel>Renewal Policy Date</FilterLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="date" name="renewalDateFrom" value={filters.renewalDateFrom} onChange={handleFilterChange}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                  <input type="date" name="renewalDateTo" value={filters.renewalDateTo} onChange={handleFilterChange}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
+                </div>
               </div>
               <div>
                 <FilterLabel>Insurance Effective Date</FilterLabel>
