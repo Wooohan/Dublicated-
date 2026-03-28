@@ -826,9 +826,30 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                             <span className="text-sm font-bold text-white">#{p.policyNumber}</span>
                             <span className="text-sm font-bold text-white">EFF: {p.effectiveDate}</span>
                           </div>
+                          {p.effectiveDate && p.effectiveDate !== 'N/A' && !p.canclEffectiveDate && (() => {
+                            try {
+                              const parts = p.effectiveDate.split('/');
+                              if (parts.length === 3) {
+                                const month = parseInt(parts[0], 10);
+                                const day = parseInt(parts[1], 10);
+                                const now = new Date();
+                                let renewalYear = now.getFullYear();
+                                const candidate = new Date(renewalYear, month - 1, day);
+                                if (candidate <= now) renewalYear += 1;
+                                const renewal = new Date(renewalYear, month - 1, day);
+                                const renewalStr = `${String(renewal.getMonth() + 1).padStart(2, '0')}/${String(renewal.getDate()).padStart(2, '0')}/${renewal.getFullYear()}`;
+                                return (
+                                  <div className="mt-1">
+                                    <span className="text-sm font-bold text-indigo-300">Renewal: {renewalStr}</span>
+                                  </div>
+                                );
+                              }
+                            } catch { /* ignore parse errors */ }
+                            return null;
+                          })()}
                           {p.canclEffectiveDate && (
                             <div className="mt-3 pt-3 border-t border-red-800/30">
-                              <span className="text-[10px] font-bold text-red-400 uppercase">Cancelled: {p.canclEffectiveDate}</span>
+                              <span className="text-[13px] font-bold text-red-400 uppercase">Cancellation: {p.canclEffectiveDate}</span>
                             </div>
                           )}
                         </div>
