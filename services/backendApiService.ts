@@ -330,9 +330,9 @@ export const fetchCarriersFromBackend = async (filters: CarrierFilters = {}): Pr
   }
 };
 
-export const deleteCarrierFromBackend = async (mcNumber: string): Promise<boolean> => {
+export const deleteCarrierFromBackend = async (dotNumber: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/carriers/${mcNumber}`, {
+    const response = await fetch(`${BACKEND_URL}/api/carriers/${dotNumber}`, {
       method: 'DELETE',
       headers: authHeadersGet(),
     });
@@ -868,9 +868,9 @@ export interface InsuranceHistoryPolicy {
   status: string;
 }
 
-export const fetchInsuranceHistory = async (mcNumber: string): Promise<InsuranceHistoryPolicy[]> => {
+export const fetchInsuranceHistory = async (docketNumber: string): Promise<InsuranceHistoryPolicy[]> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/carriers/${mcNumber}/insurance-history`, {
+    const response = await fetch(`${BACKEND_URL}/api/carriers/${docketNumber}/insurance-history`, {
       headers: authHeadersGet(),
     });
     const data = await handleResponse(response);
