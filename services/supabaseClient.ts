@@ -248,22 +248,29 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       dbaName: record.dba_name,
       entityType: record.entity_type,
       status: record.status,
+      statusCode: record.status_code,
       email: record.email,
       phone: record.phone,
+      fax: record.fax,
       powerUnits: record.power_units,
       drivers: record.drivers,
-      nonCmvUnits: record.non_cmv_units,
       physicalAddress: record.physical_address,
       mailingAddress: record.mailing_address,
-      dateScraped: record.date_scraped,
+      phyState: record.phy_state,
       mcs150Date: record.mcs150_date,
       mcs150Mileage: record.mcs150_mileage,
       operationClassification: record.operation_classification,
       carrierOperation: record.carrier_operation,
       cargoCarried: record.cargo_carried,
-      outOfServiceDate: record.out_of_service_date,
-      stateCarrierId: record.state_carrier_id,
+      hmInd: record.hm_ind,
+      operatingTerritory: record.operating_territory,
       dunsNumber: record.duns_number,
+      companyOfficer1: record.company_officer_1,
+      companyOfficer2: record.company_officer_2,
+      fleetsize: record.fleetsize,
+      addDate: record.add_date,
+      truckUnits: record.truck_units,
+      busUnits: record.bus_units,
       safetyRating: record.safety_rating,
       safetyRatingDate: record.safety_rating_date,
       basicScores: record.basic_scores,
@@ -272,8 +279,6 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
       insuranceHistoryFilings: record.insurance_history_filings || [],
       inspections: record.inspections,
       crashes: record.crashes,
-      createdAt: record.created_at,
-      updatedAt: record.updated_at,
     }));
     return { data: mapped, filtered_count: result.filtered_count };
   } catch (err: any) {
@@ -281,8 +286,8 @@ export const fetchCarriersFromSupabase = async (filters: CarrierFiltersSupabase 
     return { data: [], filtered_count: 0 };
   }
 };
-export const deleteCarrierFromSupabase = async (mcNumber: string): Promise<boolean> => {
-  return deleteCarrierFromBackend(mcNumber);
+export const deleteCarrierFromSupabase = async (dotNumber: string): Promise<boolean> => {
+  return deleteCarrierFromBackend(dotNumber);
 };
 export const getCarrierCountFromSupabase = async (): Promise<number> => {
   return getCarrierCountFromBackend();
