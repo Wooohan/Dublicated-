@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Eye, X, MapPin, Phone, Mail, Hash, Truck, Calendar, ShieldCheck, Download, ShieldAlert, Activity, Info, Globe, Map as MapIcon, Boxes, Shield, ExternalLink, CheckCircle2, AlertTriangle, Zap, Loader2, ChevronDown, ChevronUp, Copy, Check, Database } from 'lucide-react';
 import { CarrierData, InsuranceHistoryFiling } from '../types';
 import { downloadCSV } from '../services/mockService';
@@ -69,6 +69,30 @@ const calculateYearsInBusiness = (mcs150Date: string | undefined): number | null
     return null;
   }
 };
+
+/**
+ * Debounce hook to delay function execution
+ * Useful for reducing API calls on rapid filter changes
+ */
+const useDebounce = <T extends any[]>(
+  callback: (...args: T) => void,
+  delay: number
+) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  return useCallback(
+    (...args: T) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
+};
+
 const MultiSelect: React.FC<{
   options: string[];
   selected: string[];
@@ -183,7 +207,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     driversMin: '',
     driversMax: '',
     cargo: [] as string[],
-    insuranceRequired: [] as string[],
+    insuranceRequired: ['BI&PD','CARGO','BOND','TRUST FUND'] as string[],
     insuranceCompany: [] as string[],
     insEffectiveDateFrom: '',
     insEffectiveDateTo: '',
@@ -293,6 +317,17 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     return f;
   }, [mcSearchTerm, nameSearchTerm, filters]);
   const applyFilters = () => loadCarriers(buildFilters(), 0);
+
+  // FIX #2: Add debounced filter application for date pickers
+  const debouncedApplyFilters = useDebounce(() => {
+    loadCarriers(buildFilters(), 0);
+  }, 500); // 500ms delay to reduce API calls
+
+  // Use debounced version for date filter changes
+  const handleDateFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFilterChange(e);
+    debouncedApplyFilters();
+  };
   const goToPage = (page: number) => loadCarriers(buildFilters(), page);
   const resetAll = () => {
     setMcSearchTerm('');
@@ -302,7 +337,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
       hasEmail: '', hasBoc3: '', hasCompanyRep: '',
       classification: [], carrierOperation: [], hazmat: '',
       powerUnitsMin: '', powerUnitsMax: '', driversMin: '', driversMax: '', cargo: [],
-      insuranceCompany: [], insuranceRequired: [], insEffectiveDateFrom: '', insEffectiveDateTo: '', renewalPolicyMonths: '', renewalDateFrom: '', renewalDateTo: '', insCancellationDateFrom: '', insCancellationDateTo: '', bipdMin: '', bipdMax: '', bipdOnFile: '', cargoOnFile: '', bondOnFile: '', trustFundOnFile: '',
+      insuranceCompany: [], insuranceRequired: ['BI&PD','CARGO','BOND','TRUST FUND'], insEffectiveDateFrom: '', insEffectiveDateTo: '', renewalPolicyMonths: '', renewalDateFrom: '', renewalDateTo: '', insCancellationDateFrom: '', insCancellationDateTo: '', bipdMin: '', bipdMax: '', bipdOnFile: '', cargoOnFile: '', bondOnFile: '', trustFundOnFile: '',
       oosMin: '', oosMax: '', crashesMin: '', crashesMax: '',
       injuriesMin: '', injuriesMax: '', fatalitiesMin: '', fatalitiesMax: '',
       towawayMin: '', towawayMax: '', inspectionsMin: '', inspectionsMax: '',
@@ -479,27 +514,27 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               <div>
                 <FilterLabel>Renewal Policy Date</FilterLabel>
                 <div className="grid grid-cols-2 gap-2">
-                  <input type="date" name="renewalDateFrom" value={filters.renewalDateFrom} onChange={handleFilterChange}
+                  <input type="date" name="renewalDateFrom" value={filters.renewalDateFrom} onChange={handleDateFilterChange}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
-                  <input type="date" name="renewalDateTo" value={filters.renewalDateTo} onChange={handleFilterChange}
+                  <input type="date" name="renewalDateTo" value={filters.renewalDateTo} onChange={handleDateFilterChange}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
                 </div>
               </div>
               <div>
                 <FilterLabel>Insurance Effective Date</FilterLabel>
                 <div className="grid grid-cols-2 gap-2">
-                  <input type="date" name="insEffectiveDateFrom" value={filters.insEffectiveDateFrom} onChange={handleFilterChange}
+                  <input type="date" name="insEffectiveDateFrom" value={filters.insEffectiveDateFrom} onChange={handleDateFilterChange}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
-                  <input type="date" name="insEffectiveDateTo" value={filters.insEffectiveDateTo} onChange={handleFilterChange}
+                  <input type="date" name="insEffectiveDateTo" value={filters.insEffectiveDateTo} onChange={handleDateFilterChange}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
                 </div>
               </div>
               <div>
                 <FilterLabel>Insurance Cancellation Date</FilterLabel>
                 <div className="grid grid-cols-2 gap-2">
-                  <input type="date" name="insCancellationDateFrom" value={filters.insCancellationDateFrom} onChange={handleFilterChange}
+                  <input type="date" name="insCancellationDateFrom" value={filters.insCancellationDateFrom} onChange={handleDateFilterChange}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
-                  <input type="date" name="insCancellationDateTo" value={filters.insCancellationDateTo} onChange={handleFilterChange}
+                  <input type="date" name="insCancellationDateTo" value={filters.insCancellationDateTo} onChange={handleDateFilterChange}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-indigo-500" />
                 </div>
               </div>
