@@ -164,6 +164,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'inspections' | 'crashes'>('inspections');
   const [expandedInspection, setExpandedInspection] = useState<string | null>(null);
+  const [expandedCrash, setExpandedCrash] = useState<string | null>(null);
   const [activeInsurance, setActiveInsurance] = useState<InsuranceHistoryFiling[]>([]);
   const [filters, setFilters] = useState({
     entityType: '',
@@ -1103,18 +1104,70 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                         </div>
                       ))
                     ) : (
-                      selectedCarrier.crashes?.map((crash: any, i: number) => (
-                        <div key={i} className="p-4 border border-slate-100 rounded-2xl flex justify-between items-center">
-                          <div>
-                            <p className="text-sm font-black">{crash.date}</p>
-                            <p className="text-[11px] text-slate-500">{crash.state} | {crash.number}</p>
+                      selectedCarrier.crashes?.map((crash: any, i: number) => {
+                        const crashKey = crash.report_number ? `${crash.report_number}-${crash.seq_num || i}` : `crash-${i}`;
+                        return (
+                        <div key={i} className="border border-slate-100 rounded-2xl overflow-hidden group">
+                          <div 
+                            className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
+                            onClick={() => setExpandedCrash(expandedCrash === crashKey ? null : crashKey)}
+                          >
+                            <div>
+                              <p className="text-sm font-black">{crash.report_date || 'N/A'}</p>
+                              <p className="text-[11px] text-slate-500">{crash.report_state || 'N/A'} | {crash.report_number || 'N/A'}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {(crash.fatalities > 0) && <span className="bg-red-600 text-white px-2 py-0.5 rounded-lg text-[10px] font-black">FATAL</span>}
+                              {(crash.injuries > 0) && <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-black">INJURY</span>}
+                              {crash.tow_away && <span className="bg-yellow-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-black">TOW</span>}
+                              {expandedCrash === crashKey ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            {parseInt(crash.fatal) > 0 && <span className="bg-red-600 text-white px-2 py-0.5 rounded-lg text-[10px] font-black">FATAL</span>}
-                            {parseInt(crash.injuries) > 0 && <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-black">INJURY</span>}
-                          </div>
+                          {expandedCrash === crashKey && (
+                            <div className="px-4 pb-4 pt-4 border-t border-slate-100 bg-[#F8F9FA]">
+                              <div className="grid grid-cols-3 grid-rows-3 gap-y-4 gap-x-6">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Report #:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.report_number || 'N/A'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Report Date:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.report_date || 'N/A'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">State:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.report_state || 'N/A'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Fatalities:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.fatalities ?? 0}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Injuries:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.injuries ?? 0}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Tow Away:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.tow_away ? 'Yes' : 'No'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Not Preventable:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.not_preventable ? 'Yes' : 'No'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Weather:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.weather_condition_desc || 'N/A'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[12px] leading-[16px] font-normal text-[oklch(0.554_0.046_257.417)]">Vehicle ID #:</span>
+                                  <span className="text-[14px] leading-[20px] font-medium text-[oklch(0.372_0.044_257.287)]">{crash.vehicle_id_number || 'N/A'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )) || <p className="text-center py-10 text-slate-400 italic">No crash records found</p>
+                        );
+                      }) || <p className="text-center py-10 text-slate-400 italic">No crash records found</p>
                     )}
                   </div>
                 </div>
