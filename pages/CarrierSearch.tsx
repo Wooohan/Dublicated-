@@ -961,6 +961,21 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                       if (rate <= avg * 2) return { bar: 'bg-yellow-500', text: 'text-yellow-400', label: 'Average', badge: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' };
                       return { bar: 'bg-red-500', text: 'text-red-400', label: 'Alert', badge: 'bg-red-500/15 text-red-400 border-red-500/30' };
                     };
+                    const BASIC_THRESHOLDS: Record<string, { standard: number; highRisk: number }> = {
+                      'Unsafe Driving': { standard: 3.5, highRisk: 5.0 },
+                      'HOS Compliance': { standard: 2.0, highRisk: 3.0 },
+                      'Vehicle Maintenance': { standard: 7.0, highRisk: 12.0 },
+                      'Driver Fitness': { standard: 1.5, highRisk: 2.5 },
+                      'Controlled Substances': { standard: 1.0, highRisk: 2.0 },
+                      'Hazardous Materials': { standard: 2.0, highRisk: 3.0 },
+                    };
+                    const getBasicColor = (category: string, val: number) => {
+                      const t = BASIC_THRESHOLDS[category];
+                      if (!t) return { stroke: '#6366f1', label: '', badgeCls: '' };
+                      if (val === 0) return { stroke: '#10b981', label: 'Elite', badgeCls: 'bg-emerald-500/20 text-emerald-400' };
+                      if (val <= t.standard) return { stroke: '#eab308', label: 'Standard', badgeCls: 'bg-yellow-500/20 text-yellow-400' };
+                      return { stroke: '#ef4444', label: 'High Risk', badgeCls: 'bg-red-500/20 text-red-400' };
+                    };
                     const driverRate = safetyData.driver_oos_rate ?? 0;
                     const vehicleRate = safetyData.vehicle_oos_rate ?? 0;
                     const driverStyle = getOosStyle(driverRate, 'Driver');
@@ -978,7 +993,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                               </div>
                               <div>
                                 <p className="text-sm font-black text-slate-200 leading-tight uppercase">{selectedCarrier.safetyRating}</p>
-                                <p className="text-[11px] text-slate-500 font-medium font-mono">Date: {selectedCarrier.safetyRatingDate || 'Not Available'}</p>
+                                <p className="text-[11px] text-slate-500 font-medium font-mono">ENRICHED: {selectedCarrier.safetyRatingDate || 'Not Available'}</p>
                               </div>
                             </>
                           ) : (
@@ -999,41 +1014,41 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
 
                       {/* Out of Service Rates */}
                       <div className="space-y-5">
-                        <div>
-                          <h5 className="text-xs font-bold text-slate-100">Out of Service Rates</h5>
-                          <p className="text-[9px] text-slate-500 font-mono tracking-tighter uppercase mt-1">Based on % of inspections in the last 24 months</p>
+                        <div className="space-y-1">
+                          <h5 className="text-xs font-bold text-slate-100">OOS Rates</h5>
+                          <p className="text-[9px] text-slate-500 font-mono tracking-tighter uppercase">Last 24 Months Activity</p>
                         </div>
 
                         {/* Driver OOS Rate */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-300">Driver OOS Rate</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-black uppercase">
+                            <span className="text-slate-500">Driver</span>
                             <div className="flex items-center gap-2">
-                              <span className={`text-xs font-black ${driverStyle.text}`}>{driverRate}%</span>
-                              <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${driverStyle.badge}`}>{driverStyle.label}</span>
+                              <span className={driverStyle.text}>{driverRate}%</span>
+                              <span className={`text-[8px] px-1.5 py-0.5 rounded border ${driverStyle.badge}`}>{driverStyle.label}</span>
                             </div>
                           </div>
-                          <div className="w-full bg-slate-800/50 rounded-full h-2 relative">
+                          <div className="w-full bg-slate-800/50 rounded-full h-1.5 relative">
                             <div className={`h-full rounded-full ${driverStyle.bar}`} style={{ width: `${Math.min(driverRate, 100)}%` }} />
                             <div className="absolute top-[-2px] bottom-[-2px] w-0.5 bg-white rounded" style={{ left: `${Math.min(NATIONAL_AVG.Driver, 100)}%` }} />
                           </div>
-                          <p className="text-[9px] text-slate-600 font-mono">National Avg: {NATIONAL_AVG.Driver}%</p>
+                          <p className="text-[8px] text-slate-600 font-mono">Nat. Avg: {NATIONAL_AVG.Driver}%</p>
                         </div>
 
                         {/* Vehicle OOS Rate */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-300">Vehicle OOS Rate</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-black uppercase">
+                            <span className="text-slate-500">Vehicle</span>
                             <div className="flex items-center gap-2">
-                              <span className={`text-xs font-black ${vehicleStyle.text}`}>{vehicleRate}%</span>
-                              <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${vehicleStyle.badge}`}>{vehicleStyle.label}</span>
+                              <span className={vehicleStyle.text}>{vehicleRate}%</span>
+                              <span className={`text-[8px] px-1.5 py-0.5 rounded border ${vehicleStyle.badge}`}>{vehicleStyle.label}</span>
                             </div>
                           </div>
-                          <div className="w-full bg-slate-800/50 rounded-full h-2 relative">
+                          <div className="w-full bg-slate-800/50 rounded-full h-1.5 relative">
                             <div className={`h-full rounded-full ${vehicleStyle.bar}`} style={{ width: `${Math.min(vehicleRate, 100)}%` }} />
                             <div className="absolute top-[-2px] bottom-[-2px] w-0.5 bg-white rounded" style={{ left: `${Math.min(NATIONAL_AVG.Vehicle, 100)}%` }} />
                           </div>
-                          <p className="text-[9px] text-slate-600 font-mono">National Avg: {NATIONAL_AVG.Vehicle}%</p>
+                          <p className="text-[8px] text-slate-600 font-mono">Nat. Avg: {NATIONAL_AVG.Vehicle}%</p>
                         </div>
                       </div>
 
@@ -1047,20 +1062,21 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                             const val = parseFloat(score.measure) || 0;
                             const pct = Math.min(val / 100, 1);
                             const r = 34, circ = 2 * Math.PI * r;
+                            const basicColor = getBasicColor(score.category, val);
                             return (
                               <div key={idx} className="flex flex-col items-center gap-2">
                                 <div className="relative w-20 h-20">
                                   <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
                                     <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(51,65,85,0.5)" strokeWidth="5" />
-                                    <circle cx="40" cy="40" r={r} fill="none" stroke={score.alert ? '#ef4444' : '#6366f1'} strokeWidth="5" strokeDasharray={`${pct * circ} ${circ}`} strokeLinecap="round" />
+                                    <circle cx="40" cy="40" r={r} fill="none" stroke={basicColor.stroke} strokeWidth="5" strokeDasharray={`${pct * circ} ${circ}`} strokeLinecap="round" />
                                   </svg>
                                   <div className="absolute inset-0 flex items-center justify-center">
                                     <span className="text-white font-black text-sm">{score.measure}</span>
                                   </div>
                                 </div>
                                 <span className="text-[10px] font-bold text-slate-400 text-center leading-tight">{score.category}</span>
-                                {score.alert && score.alert !== '' && (
-                                  <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[8px] font-black uppercase">{score.alert}</span>
+                                {basicColor.label && (
+                                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${basicColor.badgeCls}`}>{basicColor.label}</span>
                                 )}
                               </div>
                             );
