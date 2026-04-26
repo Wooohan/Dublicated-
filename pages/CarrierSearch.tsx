@@ -3,7 +3,8 @@ import { Search, Eye, X, MapPin, Phone, Mail, Hash, Truck, Calendar, ShieldCheck
 import { CarrierData, InsuranceHistoryFiling } from '../types';
 import { downloadCSV } from '../services/mockService';
 import { fetchCarriersFromSupabase, getCarrierCountFromSupabase, CarrierFiltersSupabase } from '../services/supabaseClient';
-import { fetchSafetyByDot } from '../services/backendApiService';
+import { fetchSafetyByDot, fetchInspectionsByDot, fetchCrashesByDot } from '../services/backendApiService';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface CarrierSearchProps {
   onNavigateToInsurance: () => void;
 }
@@ -23,10 +24,10 @@ const CARRIER_OPERATIONS = [
   'Interstate','Intrastate Only (HM)','Intrastate Only (Non-HM)'
 ];
 const CARGO_TYPES = [
-  'General Freight','Household Goods','Metal: Sheets, Coils, Rolls',
-  'Motor Vehicles','Drive/Tow Away','Logs, Poles, Beams, Lumber',
+  'General Freight','Household Goods','Metal Sheets',
+  'Motor Vehicles','Drive/Tow away','Logs, Poles, Beams, Lumber',
   'Building Materials','Mobile Homes','Machinery, Large Objects',
-  'Fresh Produce','Liquids/Gases','Intermodal Cont.',
+  'Fresh Produce','Liquids/Gases','Intermodal Containers',
   'Passengers','Oilfield Equipment','Livestock',
   'Grain, Feed, Hay','Coal/Coke','Meat',
   'Garbage/Refuse','US Mail','Chemicals',
@@ -169,6 +170,16 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
   const [activeInsurance, setActiveInsurance] = useState<InsuranceHistoryFiling[]>([]);
   const [safetyData, setSafetyData] = useState<any | null>(null);
   const [safetyLoading, setSafetyLoading] = useState(false);
+  // Pagination state for inspections & crashes detail view
+  const [inspPage, setInspPage] = useState(0);
+  const [inspTotal, setInspTotal] = useState(0);
+  const [inspData, setInspData] = useState<any[]>([]);
+  const [inspLoading, setInspLoading] = useState(false);
+  const [crashPage, setCrashPage] = useState(0);
+  const [crashTotal, setCrashTotal] = useState(0);
+  const [crashData, setCrashData] = useState<any[]>([]);
+  const [crashLoading, setCrashLoading] = useState(false);
+  const PAGE_SIZE = 10;
   const [filters, setFilters] = useState({
     entityType: '',
     active: '',
@@ -223,6 +234,28 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
     getCarrierCountFromSupabase().then(setTotalCount);
     loadCarriers({});
   }, []);
+  const loadInspections = useCallback(async (dot: string, page: number) => {
+    setInspLoading(true);
+    try {
+      const res = await fetchInspectionsByDot(dot, PAGE_SIZE, page * PAGE_SIZE);
+      setInspData(res.inspections);
+      setInspTotal(res.total);
+      setInspPage(page);
+    } catch { /* ignore */ }
+    setInspLoading(false);
+  }, []);
+
+  const loadCrashes = useCallback(async (dot: string, page: number) => {
+    setCrashLoading(true);
+    try {
+      const res = await fetchCrashesByDot(dot, PAGE_SIZE, page * PAGE_SIZE);
+      setCrashData(res.crashes);
+      setCrashTotal(res.total);
+      setCrashPage(page);
+    } catch { /* ignore */ }
+    setCrashLoading(false);
+  }, []);
+
   useEffect(() => {
     if (selectedDot) {
       const carrier = carriers.find(c => c.dotNumber === selectedDot);
@@ -234,9 +267,18 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
         setSafetyData(data);
         setSafetyLoading(false);
       }).catch(() => setSafetyLoading(false));
+      // Load first page of inspections and crashes
+      setInspPage(0);
+      setCrashPage(0);
+      loadInspections(selectedDot, 0);
+      loadCrashes(selectedDot, 0);
     } else {
       setActiveInsurance([]);
       setSafetyData(null);
+      setInspData([]);
+      setCrashData([]);
+      setInspTotal(0);
+      setCrashTotal(0);
     }
   }, [selectedDot, carriers]);
   const loadCarriers = async (f: CarrierFiltersSupabase, page = 0, ps?: number) => {
@@ -1115,28 +1157,30 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                   <div className="grid grid-cols-4 gap-4 mb-6">
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                       <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Total</span>
-                      <span className="text-xl font-black">{activeTab === 'inspections' ? selectedCarrier.inspections?.length || 0 : selectedCarrier.crashes?.length || 0}</span>
+                      <span className="text-xl font-black">{activeTab === 'inspections' ? inspTotal : crashTotal}</span>
                     </div>
                     <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center">
                       <span className="text-[10px] font-bold text-blue-400 uppercase block mb-1">Violations</span>
                       <span className="text-xl font-black text-blue-600">
-                        {selectedCarrier.inspections?.reduce((acc, curr) => acc + (curr.violationList?.length || 0), 0) || 0}
+                        {inspData.reduce((acc, curr) => acc + (curr.violationList?.length || 0), 0) || 0}
                       </span>
                     </div>
                     <div className="bg-red-50 p-4 rounded-2xl border border-red-100 text-center">
                       <span className="text-[10px] font-bold text-red-400 uppercase block mb-1">OOS</span>
                       <span className="text-xl font-black text-red-600">
-                        {selectedCarrier.inspections?.reduce((acc, curr) => acc + (curr.oosViolations || 0), 0) || 0}
+                        {inspData.reduce((acc, curr) => acc + (curr.oosViolations || 0), 0) || 0}
                       </span>
                     </div>
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                       <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Crashes</span>
-                      <span className="text-xl font-black">{selectedCarrier.crashes?.length || 0}</span>
+                      <span className="text-xl font-black">{crashTotal}</span>
                     </div>
                   </div>
                   <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
                     {activeTab === 'inspections' ? (
-                      selectedCarrier.inspections?.map((insp, i) => (
+                      inspLoading ? (
+                        <div className="flex justify-center py-10"><Loader2 className="animate-spin text-slate-400" size={28} /></div>
+                      ) : inspData.map((insp, i) => (
                         <div key={i} className="border border-slate-100 rounded-2xl overflow-hidden group">
                           <div 
                             className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
@@ -1206,7 +1250,9 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                         </div>
                       ))
                     ) : (
-                      selectedCarrier.crashes?.map((crash: any, i: number) => {
+                      crashLoading ? (
+                        <div className="flex justify-center py-10"><Loader2 className="animate-spin text-slate-400" size={28} /></div>
+                      ) : crashData.length > 0 ? crashData.map((crash: any, i: number) => {
                         const crashKey = crash.report_number ? `${crash.report_number}-${crash.seq_num || i}` : `crash-${i}`;
                         return (
                         <div key={i} className="border border-slate-100 rounded-2xl overflow-hidden group">
@@ -1269,9 +1315,52 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                           )}
                         </div>
                         );
-                      }) || <p className="text-center py-10 text-slate-400 italic">No crash records found</p>
+                      }) : <p className="text-center py-10 text-slate-400 italic">No crash records found</p>
                     )}
                   </div>
+                  {/* Pagination controls */}
+                  {activeTab === 'inspections' && inspTotal > PAGE_SIZE && (
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                      <button
+                        disabled={inspPage === 0 || inspLoading}
+                        onClick={() => selectedDot && loadInspections(selectedDot, inspPage - 1)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-30 hover:bg-slate-100 transition-colors"
+                      >
+                        <ChevronLeft size={16} /> Prev
+                      </button>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {inspPage * PAGE_SIZE + 1}–{Math.min((inspPage + 1) * PAGE_SIZE, inspTotal)} of {inspTotal}
+                      </span>
+                      <button
+                        disabled={(inspPage + 1) * PAGE_SIZE >= inspTotal || inspLoading}
+                        onClick={() => selectedDot && loadInspections(selectedDot, inspPage + 1)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-30 hover:bg-slate-100 transition-colors"
+                      >
+                        Next <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                  {activeTab === 'crashes' && crashTotal > PAGE_SIZE && (
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                      <button
+                        disabled={crashPage === 0 || crashLoading}
+                        onClick={() => selectedDot && loadCrashes(selectedDot, crashPage - 1)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-30 hover:bg-slate-100 transition-colors"
+                      >
+                        <ChevronLeft size={16} /> Prev
+                      </button>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {crashPage * PAGE_SIZE + 1}–{Math.min((crashPage + 1) * PAGE_SIZE, crashTotal)} of {crashTotal}
+                      </span>
+                      <button
+                        disabled={(crashPage + 1) * PAGE_SIZE >= crashTotal || crashLoading}
+                        onClick={() => selectedDot && loadCrashes(selectedDot, crashPage + 1)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-bold disabled:opacity-30 hover:bg-slate-100 transition-colors"
+                      >
+                        Next <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
