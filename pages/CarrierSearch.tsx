@@ -59,6 +59,37 @@ const RENEWAL_MONTH_OPTIONS = [
   { value: '4', label: '4th Month' },
   { value: '5', label: '5th Month' },
 ];
+const calculateRenewalDate = (effectiveDate: string | undefined): string | null => {
+  if (!effectiveDate || effectiveDate === 'N/A' || effectiveDate === '--') return null;
+  try {
+    let month: number, day: number, year: number;
+    // Try MM/DD/YYYY format
+    if (effectiveDate.includes('/')) {
+      const parts = effectiveDate.split('/');
+      if (parts.length === 3) {
+        month = parseInt(parts[0], 10);
+        day = parseInt(parts[1], 10);
+        year = parseInt(parts[2], 10);
+      } else return null;
+    // Try YYYY-MM-DD format
+    } else if (effectiveDate.includes('-')) {
+      const parts = effectiveDate.split('-');
+      if (parts.length === 3) {
+        year = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+        day = parseInt(parts[2], 10);
+      } else return null;
+    } else return null;
+
+    if (isNaN(month) || isNaN(day) || isNaN(year)) return null;
+    const now = new Date();
+    let renewalYear = now.getFullYear();
+    const candidate = new Date(renewalYear, month - 1, day);
+    if (candidate <= now) renewalYear += 1;
+    const renewal = new Date(renewalYear, month - 1, day);
+    return `${String(renewal.getMonth() + 1).padStart(2, '0')}/${String(renewal.getDate()).padStart(2, '0')}/${renewal.getFullYear()}`;
+  } catch { return null; }
+};
 const calculateYearsInBusiness = (mcs150Date: string | undefined): number | null => {
   if (!mcs150Date || mcs150Date === 'N/A') return null;
   try {
@@ -982,26 +1013,11 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                             </td>
                             <td className="py-3 px-4">
                               <p className="text-xs text-slate-700">Eff: {p.effectiveDate}</p>
-                              {p.canclEffectiveDate && (
+                              {p.canclEffectiveDate ? (
                                 <p className="text-xs text-red-500">Cancel: {p.canclEffectiveDate}</p>
-                              )}
-                              {p.effectiveDate && p.effectiveDate !== 'N/A' && !p.canclEffectiveDate && (() => {
-                                try {
-                                  const parts = p.effectiveDate.split('/');
-                                  if (parts.length === 3) {
-                                    const month = parseInt(parts[0], 10);
-                                    const day = parseInt(parts[1], 10);
-                                    const now = new Date();
-                                    let renewalYear = now.getFullYear();
-                                    const candidate = new Date(renewalYear, month - 1, day);
-                                    if (candidate <= now) renewalYear += 1;
-                                    const renewal = new Date(renewalYear, month - 1, day);
-                                    const renewalStr = `${String(renewal.getMonth() + 1).padStart(2, '0')}/${String(renewal.getDate()).padStart(2, '0')}/${renewal.getFullYear()}`;
-                                    return <p className="text-xs text-blue-600 font-medium">Renewal: {renewalStr}</p>;
-                                  }
-                                } catch { /* ignore parse errors */ }
-                                return null;
-                              })()}
+                              ) : calculateRenewalDate(p.effectiveDate) ? (
+                                <p className="text-xs text-blue-600 font-medium">Renewal: {calculateRenewalDate(p.effectiveDate)}</p>
+                              ) : null}
                             </td>
                             <td className="py-3 px-4 text-right">
                               <span className="text-base font-extrabold text-slate-900">{p.coverageAmount}</span>
