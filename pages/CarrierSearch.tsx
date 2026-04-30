@@ -63,8 +63,10 @@ const calculateRenewalDate = (effectiveDate: string | undefined): string | null 
   if (!effectiveDate || effectiveDate === 'N/A' || effectiveDate === '--') return null;
   try {
     let month: number, day: number, year: number;
+    let isSlashFormat = false;
     // Try MM/DD/YYYY format
     if (effectiveDate.includes('/')) {
+      isSlashFormat = true;
       const parts = effectiveDate.split('/');
       if (parts.length === 3) {
         month = parseInt(parts[0], 10);
@@ -82,12 +84,17 @@ const calculateRenewalDate = (effectiveDate: string | undefined): string | null 
     } else return null;
 
     if (isNaN(month) || isNaN(day) || isNaN(year)) return null;
+    // Renewal is always at least 1 year after the effective date
+    let renewalYear = year + 1;
     const now = new Date();
-    let renewalYear = now.getFullYear();
-    const candidate = new Date(renewalYear, month - 1, day);
-    if (candidate <= now) renewalYear += 1;
-    const renewal = new Date(renewalYear, month - 1, day);
-    return `${String(renewal.getMonth() + 1).padStart(2, '0')}/${String(renewal.getDate()).padStart(2, '0')}/${renewal.getFullYear()}`;
+    // If that renewal has already passed, keep advancing a year
+    while (new Date(renewalYear, month - 1, day) <= now) {
+      renewalYear += 1;
+    }
+    const mm = String(month).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    // Return in the same format as the effective date
+    return isSlashFormat ? `${mm}/${dd}/${renewalYear}` : `${renewalYear}-${mm}-${dd}`;
   } catch { return null; }
 };
 const calculateYearsInBusiness = (mcs150Date: string | undefined): number | null => {
