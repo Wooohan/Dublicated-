@@ -3,7 +3,6 @@ import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { Scraper } from './pages/Scraper';
 import { CarrierSearch } from './pages/CarrierSearch';
-import { InsuranceScraper } from './pages/InsuranceScraper';
 import { Subscription } from './pages/Subscription';
 import { Landing } from './pages/Landing';
 import { AdminPanel } from './pages/AdminPanel';
@@ -16,25 +15,21 @@ import { logoutUser } from './services/backendApiService';
 import { fetchCarriersFromSupabase, CarrierFiltersSupabase } from './services/supabaseClient';
 import { ErrorBoundary } from './components/ErrorBoundary';
 const SettingsPage: React.FC<{ user: User }> = ({ user }) => (
-  <div className="p-8 max-w-2xl mx-auto">
-    <h2 className="text-2xl font-bold text-white mb-6">Settings</h2>
-    <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 space-y-4">
-      <div className="flex justify-between items-center py-3 border-b border-slate-700">
-        <span className="text-slate-400">Email</span>
-        <span className="text-white font-medium">{user.email}</span>
-      </div>
-      <div className="flex justify-between items-center py-3 border-b border-slate-700">
-        <span className="text-slate-400">Role</span>
-        <span className="text-white font-medium capitalize">{user.role}</span>
-      </div>
-      <div className="flex justify-between items-center py-3 border-b border-slate-700">
-        <span className="text-slate-400">Plan</span>
-        <span className="text-white font-medium">{user.plan}</span>
-      </div>
-      <div className="flex justify-between items-center py-3">
-        <span className="text-slate-400">Daily Limit</span>
-        <span className="text-white font-medium">{user.dailyLimit.toLocaleString()} records</span>
-      </div>
+  <div className="p-8 max-w-2xl mx-auto animate-fade-in">
+    <h2 className="text-2xl font-bold text-slate-800 mb-2 tracking-tight">Settings</h2>
+    <p className="text-slate-400 text-sm mb-6">Manage your account preferences</p>
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-1 shadow-sm">
+      {[
+        { label: 'Email', value: user.email },
+        { label: 'Role', value: user.role },
+        { label: 'Plan', value: user.plan },
+        { label: 'Daily Limit', value: `${user.dailyLimit.toLocaleString()} records` },
+      ].map((item, i, arr) => (
+        <div key={i} className={`flex justify-between items-center py-3.5 ${i < arr.length - 1 ? 'border-b border-slate-100' : ''}`}>
+          <span className="text-slate-500 text-sm">{item.label}</span>
+          <span className="text-slate-800 text-sm font-medium capitalize">{item.value}</span>
+        </div>
+      ))}
     </div>
   </div>
 );
@@ -160,7 +155,7 @@ const App: React.FC = () => {
   }
   return (
     <ErrorBoundary>
-      <div className="flex min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
+      <div className="flex min-h-screen text-slate-700 font-sans selection:bg-blue-500/20" style={{ background: '#F8FAFC' }}>
         <Sidebar 
           currentView={currentView} 
           setCurrentView={handleViewChange} 
@@ -168,8 +163,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
         />
         
-        <main className="flex-1 ml-64 relative bg-[url('/noise.svg')] bg-repeat h-screen overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-96 bg-indigo-600/10 blur-[100px] pointer-events-none rounded-full -translate-y-1/2"></div>
+        <main className="flex-1 ml-60 relative h-screen overflow-y-auto overflow-x-hidden">
           {user && renderContent()}
         </main>
       </div>
