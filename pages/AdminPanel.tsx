@@ -293,33 +293,36 @@ export const AdminPanel: React.FC = () => {
       <div className="flex gap-2 border-b border-slate-200 pb-4">
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
             activeTab === 'users' 
-              ? 'bg-indigo-600 text-white shadow-sm' 
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'text-white shadow-md' 
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-200'
           }`}
+          style={activeTab === 'users' ? { background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', boxShadow: '0 4px 16px rgba(124,92,252,0.25)' } : undefined}
         >
           <Users className="w-4 h-4 inline mr-2" />
           User Management
         </button>
         <button
           onClick={() => setActiveTab('blocked')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
             activeTab === 'blocked' 
-              ? 'bg-indigo-600 text-white shadow-sm' 
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'text-white shadow-md' 
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-200'
           }`}
+          style={activeTab === 'blocked' ? { background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', boxShadow: '0 4px 16px rgba(124,92,252,0.25)' } : undefined}
         >
           <Ban className="w-4 h-4 inline mr-2" />
           Blocked IPs ({blockedIPs.length})
         </button>
         <button
           onClick={() => setActiveTab('add')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
             activeTab === 'add' 
-              ? 'bg-indigo-600 text-white shadow-sm' 
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'text-white shadow-md' 
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-200'
           }`}
+          style={activeTab === 'add' ? { background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', boxShadow: '0 4px 16px rgba(124,92,252,0.25)' } : undefined}
         >
           <UserPlus className="w-4 h-4 inline mr-2" />
           Add User
