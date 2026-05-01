@@ -732,6 +732,7 @@ export interface NewVentureFilters {
   dateFrom?: string;
   dateTo?: string;
   active?: string;
+  entityType?: string;
   state?: string;
   hasEmail?: string;
   carrierOperation?: string;
@@ -757,6 +758,7 @@ export const fetchNewVenturesFromBackend = async (filters: NewVentureFilters = {
     if (filters.dateFrom) params.append('date_from', filters.dateFrom);
     if (filters.dateTo) params.append('date_to', filters.dateTo);
     if (filters.active) params.append('active', filters.active);
+    if (filters.entityType) params.append('entity_type', filters.entityType);
     if (filters.state) params.append('state', filters.state);
     if (filters.hasEmail) params.append('has_email', filters.hasEmail);
     if (filters.carrierOperation) params.append('carrier_operation', filters.carrierOperation);
