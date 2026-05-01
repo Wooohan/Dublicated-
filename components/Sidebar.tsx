@@ -36,12 +36,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
       >
         <div className={`flex items-center justify-center w-8 h-8 rounded-xl transition-all duration-200 ${
           isActive
-            ? 'bg-blue-50 text-blue-600'
+            ? 'text-[#7C5CFC]'
             : 'text-slate-400 group-hover:text-slate-600'
-        }`}>
+        }`} style={isActive ? { background: 'rgba(124,92,252,0.1)' } : undefined}>
           <Icon className="w-4 h-4" />
         </div>
-        <span className={`text-sm font-medium flex-1 text-left ${isActive ? 'text-blue-700' : 'text-slate-500'}`}>
+        <span className={`text-sm font-medium flex-1 text-left ${isActive ? 'text-[#7C5CFC]' : 'text-slate-500'}`}>
           {item.label}
         </span>
         {item.id === 'scraper' && isAdmin && (
@@ -51,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
           <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-wide">ADM</span>
         )}
         {isActive && (
-          <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+          <ChevronRight className="w-3.5 h-3.5 text-[#A78BFA]" />
         )}
       </button>
     );
@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
     <aside className="w-60 sidebar-bg flex flex-col h-screen fixed left-0 top-0 z-10">
       {/* Logo */}
       <div className="px-5 py-5 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-2xl flex items-center justify-center shadow-md" style={{background: 'linear-gradient(135deg, #3B82F6, #2563EB)', boxShadow: '0 4px 12px rgba(59,130,246,0.3)'}}>
+        <div className="w-9 h-9 rounded-2xl flex items-center justify-center shadow-md" style={{background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', boxShadow: '0 4px 12px rgba(124,92,252,0.3)'}}>
           <Truck className="w-4 h-4 text-white" />
         </div>
         <div>
@@ -92,15 +92,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
 
       {/* User section */}
       <div className="p-3 border-t border-slate-100">
-        <div className="rounded-2xl p-3 mb-2" style={{background: '#F0F7FF', border: '1px solid rgba(59,130,246,0.12)'}}>
+        <div className="rounded-2xl p-3 mb-2" style={{background: 'rgba(124,92,252,0.06)', border: '1px solid rgba(124,92,252,0.12)'}}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{background: 'linear-gradient(135deg, #3B82F6, #2563EB)'}}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)'}}>
               {user.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 truncate heading-display">{user.name}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] text-blue-600 font-medium capitalize">{user.plan}</span>
+                <span className="text-[10px] text-[#7C5CFC] font-medium capitalize">{user.plan}</span>
                 {user.role === 'admin' && (
                   <span className="text-[9px] bg-red-50 text-red-600 border border-red-200 px-1.5 py-0.5 rounded-md font-bold">Admin</span>
                 )}
