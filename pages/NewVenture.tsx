@@ -101,6 +101,32 @@ const val = (v: any): string => {
   return s.trim() ? s.trim() : '-';
 };
 
+const getAuthorityStatus = (v: NewVentureData): string => {
+  const common = String(v.common_stat || '').trim().toUpperCase();
+  const contract = String(v.contract_stat || '').trim().toUpperCase();
+  const broker = String(v.broker_stat || '').trim().toUpperCase();
+  if (common === 'A' || contract === 'A' || broker === 'A') return 'AUTHORIZED';
+  if (common === 'P' || contract === 'P' || broker === 'P') return 'PENDING';
+  const ops = String(v.operating_status || '').trim().toUpperCase();
+  if (ops.includes('AUTHORIZED') && !ops.includes('NOT')) return 'AUTHORIZED';
+  if (ops.includes('PENDING')) return 'PENDING';
+  if (ops === 'ACTIVE') return 'AUTHORIZED';
+  if (common || contract || broker) return 'NOT AUTHORIZED';
+  return 'NOT AUTHORIZED';
+};
+
+const getEntityType = (v: NewVentureData): string => {
+  const carship = String(v.carship || '').trim().toUpperCase();
+  const isCarrier = carship.includes('C');
+  const isBroker = carship.includes('B');
+  if (isCarrier && isBroker) return 'CARRIER/BROKER';
+  if (isBroker) return 'BROKER';
+  if (isCarrier) return 'CARRIER';
+  const carrierOp = String(v.carrier_operation || '').trim().toUpperCase();
+  if (carrierOp) return 'CARRIER';
+  return 'CARRIER';
+};
+
 const cargoFields: { key: keyof NewVentureData; label: string }[] = [
   { key: 'genfreight', label: 'General Freight' },
   { key: 'household', label: 'Household Goods' },
@@ -176,6 +202,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   const [filters, setFilters] = useState({
     dotNumber: '',
     active: '',
+    entityType: '',
     states: [] as string[],
     hasEmail: '',
     carrierOperation: [] as string[],
@@ -228,6 +255,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     if (dateFrom) f.dateFrom = dateFrom;
     if (dateTo) f.dateTo = dateTo;
     if (filters.active) f.active = filters.active;
+    if (filters.entityType) f.entityType = filters.entityType;
     if (filters.states.length > 0) f.state = filters.states.join('|');
     if (filters.hasEmail) f.hasEmail = filters.hasEmail;
     if (filters.carrierOperation.length > 0) f.carrierOperation = filters.carrierOperation.join('|');
@@ -251,7 +279,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     setDateFrom('');
     setDateTo('');
     setFilters({
-      dotNumber: '', active: '', states: [], hasEmail: '',
+      dotNumber: '', active: '', entityType: '', states: [], hasEmail: '',
       carrierOperation: [], hazmat: '',
       powerUnitsMin: '', powerUnitsMax: '',
       driversMin: '', driversMax: '',
@@ -286,7 +314,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
   };
 
   const hasActiveFilters = !!(docketSearch.trim() || nameSearch.trim() || dateFrom || dateTo ||
-    filters.dotNumber || filters.active || filters.states.length > 0 || filters.hasEmail ||
+    filters.dotNumber || filters.active || filters.entityType || filters.states.length > 0 || filters.hasEmail ||
     filters.carrierOperation.length > 0 || filters.hazmat || filters.powerUnitsMin || filters.powerUnitsMax ||
     filters.driversMin || filters.driversMax || filters.bipdOnFile || filters.cargoOnFile || filters.bondOnFile);
 
@@ -301,6 +329,12 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     { value: 'inactive', label: 'Inactive' },
     { value: 'authorization_pending', label: 'Authorization Pending' },
     { value: 'not_authorized', label: 'Not Authorized' },
+  ];
+  const entityTypeOptions = [
+    { value: '', label: 'Any' },
+    { value: 'carrier', label: 'Carrier' },
+    { value: 'broker', label: 'Broker' },
+    { value: 'carrier_broker', label: 'Carrier/Broker' },
   ];
 
   const DetailModal: React.FC<{ v: NewVentureData; onClose: () => void }> = ({ v, onClose }) => {
@@ -363,12 +397,21 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3 mb-1">
                   <h2 className="text-lg md:text-2xl font-extrabold text-slate-900 tracking-tight truncate max-w-[300px] md:max-w-[700px] leading-tight">{val(v.name)}</h2>
-                  <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                    String(v.operating_status || '').toUpperCase().includes('AUTHORIZED') && !String(v.operating_status || '').toUpperCase().includes('NOT')
+                  <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${
+                    getAuthorityStatus(v) === 'AUTHORIZED'
                       ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      : 'bg-red-50 text-red-600 border-red-200'
+                      : getAuthorityStatus(v) === 'PENDING'
+                        ? 'bg-amber-50 text-amber-600 border-amber-200'
+                        : 'bg-red-50 text-red-600 border-red-200'
                   }`}>
-                    {String(v.operating_status || '').toUpperCase().includes('AUTHORIZED') && !String(v.operating_status || '').toUpperCase().includes('NOT') ? 'Active Authority' : val(v.operating_status)}
+                    {getAuthorityStatus(v) === 'AUTHORIZED' ? 'Authorized' : getAuthorityStatus(v) === 'PENDING' ? 'Pending' : 'Not Authorized'}
+                  </span>
+                  <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${
+                    getEntityType(v).includes('BROKER')
+                      ? 'bg-orange-50 text-orange-600 border-orange-200'
+                      : 'bg-violet-50 text-violet-600 border-violet-200'
+                  }`}>
+                    {getEntityType(v)}
                   </span>
                 </div>
                 {v.name_dba && <p className="text-slate-500 text-sm">DBA: {v.name_dba}</p>}
@@ -418,7 +461,9 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <InfoRow label="DBA Name" value={v.name_dba || ''} />
                     <InfoRow label="DOT Number" value={v.dot_number || ''} copyKey="dot" />
                     <InfoRow label="Docket (MC#)" value={v.docket_number || ''} copyKey="mc" />
-                    <InfoRow label="Status" value={v.operating_status || ''} />
+                    <InfoRow label="Authority Status" value={getAuthorityStatus(v) === 'AUTHORIZED' ? 'Authorized' : getAuthorityStatus(v) === 'PENDING' ? 'Pending' : 'Not Authorized'} />
+                    <InfoRow label="Entity Type" value={getEntityType(v)} />
+                    <InfoRow label="Operating Status" value={v.operating_status || ''} />
                     <InfoRow label="Carrier Operation" value={v.carrier_operation || ''} />
                     <InfoRow label="Add Date" value={v.add_date || ''} />
                     <InfoRow label="Officer 1" value={v.company_officer_1 || ''} />
@@ -756,6 +801,10 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={activeStatusOptions} />
               </div>
               <div>
+                <FilterLabel>Entity Type</FilterLabel>
+                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={entityTypeOptions} />
+              </div>
+              <div>
                 <FilterLabel>State</FilterLabel>
                 <MultiSelect options={US_STATES} selected={filters.states} onChange={vals => setFilters(f => ({ ...f, states: vals }))} placeholder="All" />
               </div>
@@ -836,6 +885,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">DOT#</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">MC#</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Status</th>
+                <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Entity</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">State</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Phone</th>
                 <th className="p-4 font-bold text-[10px] uppercase tracking-widest text-slate-500">Email</th>
@@ -848,29 +898,31 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-20">
+                  <td colSpan={12} className="text-center py-20">
                     <Loader2 className="w-8 h-8 text-violet-500 animate-spin mx-auto mb-3" />
                     <p className="text-slate-400 text-sm">Loading ventures...</p>
                   </td>
                 </tr>
               ) : ventures.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-20">
+                  <td colSpan={12} className="text-center py-20">
                     <Database className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                     <p className="text-slate-400 text-sm">No records found. Try adjusting your filters or scrape new data.</p>
                   </td>
                 </tr>
               ) : (
                 ventures.map((v, i) => {
-                  const statusUpper = String(v.operating_status || '').toUpperCase().trim();
-                  const isActive = (statusUpper.includes('AUTHORIZED') && !statusUpper.includes('NOT') && !statusUpper.includes('PENDING')) || statusUpper === 'ACTIVE';
-                  const isPending = statusUpper.includes('PENDING');
-                  const statusClass = isActive
-                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold'
+                  const authStatus = getAuthorityStatus(v);
+                  const entityType = getEntityType(v);
+                  const isAuth = authStatus === 'AUTHORIZED';
+                  const isPending = authStatus === 'PENDING';
+                  const statusClass = isAuth
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                     : isPending
                       ? 'bg-amber-50 text-amber-600 border border-amber-200'
                       : 'bg-red-50 text-red-600 border border-red-200';
-                  const statusLabel = isActive ? 'Active' : val(v.operating_status);
+                  const statusLabel = isAuth ? 'AUTHORIZED' : isPending ? 'PENDING' : 'NOT AUTHORIZED';
+                  const isBroker = entityType.includes('BROKER');
                   return (
                     <tr
                       key={v.id || i}
@@ -884,8 +936,13 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                       <td className="p-4 font-mono text-slate-500 text-xs">{val(v.dot_number)}</td>
                       <td className="p-4 font-mono text-slate-500 text-xs">{val(v.docket_number)}</td>
                       <td className="p-4">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusClass}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-tight border ${statusClass}`}>
                           {statusLabel}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-tight border ${isBroker ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                          {entityType}
                         </span>
                       </td>
                       <td className="p-4 text-slate-600 text-xs">{val(v.phy_st)}</td>
