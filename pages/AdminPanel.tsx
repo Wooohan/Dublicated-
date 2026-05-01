@@ -231,20 +231,20 @@ export const AdminPanel: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center h-full">
+      <div className="p-8 flex items-center justify-center h-full bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading admin data...</p>
+          <p className="text-slate-500">Loading admin data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in h-full overflow-y-auto">
+    <div className="p-8 space-y-8 animate-fade-in h-full overflow-y-auto bg-white">
       {message && (
         <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
-          message.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+          message.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
         }`}>
           {message.text}
         </div>
@@ -252,49 +252,51 @@ export const AdminPanel: React.FC = () => {
 
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Admin Control Center</h1>
-          <p className="text-slate-400">System analytics, user management, and IP blocking.</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Admin Control Center</h1>
+          <p className="text-slate-500">System analytics, user management, and IP blocking.</p>
         </div>
         <div className="flex items-center gap-4">
           <button
             onClick={loadData}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg transition-colors shadow-sm"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-full">
+          <div className="flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full">
              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-             <span className="text-red-400 font-mono text-xs">LIVE ENVIRONMENT</span>
+             <span className="text-red-600 font-mono text-xs font-semibold">LIVE ENVIRONMENT</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Active Sessions', value: activeUsers, icon: Activity, color: 'text-green-400' },
-          { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-400' },
-          { label: 'Monthly Revenue', value: `$${totalRevenue}`, icon: DollarSign, color: 'text-yellow-400' },
-          { label: 'Blocked IPs', value: blockedIPs.length, icon: Ban, color: 'text-red-400' },
+          { label: 'Active Sessions', value: activeUsers, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+          { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
+          { label: 'Monthly Revenue', value: `$${totalRevenue}`, icon: DollarSign, color: 'text-amber-500', bg: 'bg-amber-50' },
+          { label: 'Blocked IPs', value: blockedIPs.length, icon: Ban, color: 'text-red-500', bg: 'bg-red-50' },
         ].map((stat, idx) => (
-          <div key={idx} className="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl">
+          <div key={idx} className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-2">
-              <span className="text-slate-400 text-sm font-medium">{stat.label}</span>
-              <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              <span className="text-slate-500 text-sm font-medium">{stat.label}</span>
+              <div className={`p-2 rounded-lg ${stat.bg}`}>
+                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-white">{stat.value}</p>
+            <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-2 border-b border-slate-700 pb-4">
+      <div className="flex gap-2 border-b border-slate-200 pb-4">
         <button
           onClick={() => setActiveTab('users')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'users' 
-              ? 'bg-indigo-600 text-white' 
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-indigo-600 text-white shadow-sm' 
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Users className="w-4 h-4 inline mr-2" />
@@ -304,8 +306,8 @@ export const AdminPanel: React.FC = () => {
           onClick={() => setActiveTab('blocked')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'blocked' 
-              ? 'bg-indigo-600 text-white' 
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-indigo-600 text-white shadow-sm' 
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Ban className="w-4 h-4 inline mr-2" />
@@ -315,8 +317,8 @@ export const AdminPanel: React.FC = () => {
           onClick={() => setActiveTab('add')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'add' 
-              ? 'bg-indigo-600 text-white' 
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-indigo-600 text-white shadow-sm' 
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <UserPlus className="w-4 h-4 inline mr-2" />
@@ -325,36 +327,36 @@ export const AdminPanel: React.FC = () => {
       </div>
 
       {activeTab === 'users' && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl overflow-hidden flex flex-col min-h-[500px]">
-          <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-white">User Directory ({users.length} users)</h2>
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col min-h-[500px] shadow-sm">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-900">User Directory ({users.length} users)</h2>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white outline-none focus:border-indigo-500"
+                className="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-400">
-              <thead className="bg-slate-900 text-slate-200">
+            <table className="w-full text-left text-sm text-slate-600">
+              <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="p-4 font-medium">Status</th>
-                  <th className="p-4 font-medium">Identity</th>
-                  <th className="p-4 font-medium">Role</th>
-                  <th className="p-4 font-medium">Plan</th>
-                  <th className="p-4 font-medium">Daily Limit</th>
-                  <th className="p-4 font-medium">Usage</th>
-                  <th className="p-4 font-medium">IP Address</th>
-                  <th className="p-4 font-medium">Actions</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Identity</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Role</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Plan</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Daily Limit</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Usage</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">IP Address</th>
+                  <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-slate-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-slate-400">
@@ -363,20 +365,20 @@ export const AdminPanel: React.FC = () => {
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className={`hover:bg-slate-700/30 transition-colors ${user.isBlocked ? 'opacity-50 bg-red-900/10' : ''}`}>
+                    <tr key={user.id} className={`hover:bg-slate-50 transition-colors ${user.isBlocked ? 'opacity-50 bg-red-50/50' : ''}`}>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${user.isBlocked ? 'bg-red-500' : user.isOnline ? 'bg-green-500' : 'bg-slate-500'}`} />
-                          <span>{user.isBlocked ? 'Blocked' : user.isOnline ? 'Online' : formatLastActive(user.lastActive)}</span>
+                          <div className={`w-2 h-2 rounded-full ${user.isBlocked ? 'bg-red-500' : user.isOnline ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                          <span className="text-slate-700">{user.isBlocked ? 'Blocked' : user.isOnline ? 'Online' : formatLastActive(user.lastActive)}</span>
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-white">{user.name}</div>
-                        <div className="text-xs">{user.email}</div>
+                        <div className="font-semibold text-slate-900">{user.name}</div>
+                        <div className="text-xs text-slate-400">{user.email}</div>
                       </td>
                       <td className="p-4">
                         <span className={`px-2 py-1 rounded text-xs font-bold ${
-                          user.role === 'admin' ? 'bg-red-500/20 text-red-300' : 'bg-slate-600/20 text-slate-300'
+                          user.role === 'admin' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-600 border border-slate-200'
                         }`}>
                           {user.role.toUpperCase()}
                         </span>
@@ -384,7 +386,7 @@ export const AdminPanel: React.FC = () => {
                       <td className="p-4">
                          {editingId === user.id ? (
                             <select 
-                              className="bg-slate-900 border border-slate-600 rounded p-1 text-white"
+                              className="bg-white border border-slate-300 rounded p-1 text-slate-900 text-sm"
                               value={editForm.plan}
                               onChange={e => setEditForm({...editForm, plan: e.target.value as any})}
                             >
@@ -394,18 +396,20 @@ export const AdminPanel: React.FC = () => {
                               <option value="Enterprise">Enterprise</option>
                             </select>
                          ) : (
-                            <span className={`px-2 py-1 rounded text-xs font-bold 
-                              ${user.plan === 'Enterprise' ? 'bg-purple-500/20 text-purple-300' : 
-                                user.plan === 'Pro' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600/20 text-slate-300'}`}>
+                            <span className={`px-2 py-1 rounded text-xs font-bold border 
+                              ${user.plan === 'Enterprise' ? 'bg-purple-50 text-purple-600 border-purple-200' : 
+                                user.plan === 'Pro' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 
+                                user.plan === 'Starter' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                'bg-slate-100 text-slate-600 border-slate-200'}`}>
                               {user.plan}
                             </span>
                          )}
                       </td>
-                      <td className="p-4 font-mono">
+                      <td className="p-4 font-mono text-slate-700">
                         {editingId === user.id ? (
                           <input 
                             type="number"
-                            className="bg-slate-900 border border-slate-600 rounded p-1 text-white w-24"
+                            className="bg-white border border-slate-300 rounded p-1 text-slate-900 w-24 text-sm"
                             value={editForm.dailyLimit}
                             onChange={e => setEditForm({...editForm, dailyLimit: parseInt(e.target.value)})}
                           />
@@ -415,16 +419,16 @@ export const AdminPanel: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-24 bg-slate-700 rounded-full h-1.5">
+                          <div className="w-24 bg-slate-200 rounded-full h-1.5">
                             <div 
                               className={`h-1.5 rounded-full ${user.recordsExtractedToday > user.dailyLimit * 0.9 ? 'bg-red-500' : 'bg-indigo-500'}`} 
                               style={{ width: `${Math.min((user.recordsExtractedToday / user.dailyLimit) * 100, 100)}%` }}
                             />
                           </div>
-                          <span className="text-xs">{user.recordsExtractedToday}</span>
+                          <span className="text-xs text-slate-500">{user.recordsExtractedToday}</span>
                         </div>
                       </td>
-                      <td className="p-4 font-mono text-xs text-slate-500">{user.ipAddress}</td>
+                      <td className="p-4 font-mono text-xs text-slate-400">{user.ipAddress}</td>
                       <td className="p-4">
                         <div className="flex gap-2">
                           {editingId === user.id ? (
@@ -432,24 +436,24 @@ export const AdminPanel: React.FC = () => {
                               <button 
                                 onClick={handleSave} 
                                 disabled={isSaving}
-                                className="p-1.5 bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 disabled:opacity-50" 
+                                className="p-1.5 bg-emerald-50 text-emerald-600 rounded hover:bg-emerald-100 border border-emerald-200 disabled:opacity-50" 
                                 title="Save"
                               >
                                 <Save size={16} />
                               </button>
-                              <button onClick={() => setEditingId(null)} className="p-1.5 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30" title="Cancel">
+                              <button onClick={() => setEditingId(null)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 border border-red-200" title="Cancel">
                                 <X size={16} />
                               </button>
                             </>
                           ) : (
                             <>
-                              <button onClick={() => handleEdit(user)} className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors" title="Edit">
+                              <button onClick={() => handleEdit(user)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors border border-transparent hover:border-slate-200" title="Edit">
                                 <Edit2 size={16} />
                               </button>
                               <button 
                                 onClick={() => handleBlockUser(user)} 
                                 disabled={isSaving}
-                                className={`p-1.5 rounded transition-colors disabled:opacity-50 ${user.isBlocked ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'}`}
+                                className={`p-1.5 rounded transition-colors border disabled:opacity-50 ${user.isBlocked ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200' : 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200'}`}
                                 title={user.isBlocked ? 'Unblock User' : 'Block User'}
                               >
                                 {user.isBlocked ? <CheckCircle size={16} /> : <Ban size={16} />}
@@ -458,7 +462,7 @@ export const AdminPanel: React.FC = () => {
                                 <button 
                                   onClick={() => handleDeleteUser(user.id)} 
                                   disabled={isSaving}
-                                  className="p-1.5 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                  className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 border border-red-200 transition-colors disabled:opacity-50"
                                   title="Delete User"
                                 >
                                   <Trash2 size={16} />
@@ -479,37 +483,37 @@ export const AdminPanel: React.FC = () => {
 
       {activeTab === 'blocked' && (
         <div className="space-y-6">
-          <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Ban className="w-5 h-5 text-red-400" />
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Ban className="w-5 h-5 text-red-500" />
               Block New IP Address
             </h3>
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm text-slate-400 mb-1">IP Address</label>
+                <label className="block text-sm text-slate-500 mb-1 font-medium">IP Address</label>
                 <input
                   type="text"
                   placeholder="e.g., 192.168.1.100"
                   value={blockIpAddress}
                   onChange={(e) => setBlockIpAddress(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm text-slate-400 mb-1">Reason (optional)</label>
+                <label className="block text-sm text-slate-500 mb-1 font-medium">Reason (optional)</label>
                 <input
                   type="text"
                   placeholder="e.g., Suspicious activity"
                   value={blockReason}
                   onChange={(e) => setBlockReason(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                 />
               </div>
               <div className="flex items-end">
                 <button
                   onClick={handleBlockIP}
                   disabled={isSaving || !blockIpAddress.trim()}
-                  className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                  className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-sm"
                 >
                   Block IP
                 </button>
@@ -517,9 +521,9 @@ export const AdminPanel: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700 rounded-2xl overflow-hidden">
-            <div className="p-6 border-b border-slate-700">
-              <h3 className="text-lg font-bold text-white">Blocked IP Addresses</h3>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-slate-200">
+              <h3 className="text-lg font-bold text-slate-900">Blocked IP Addresses</h3>
             </div>
             {blockedIPs.length === 0 ? (
               <div className="p-12 text-center text-slate-400">
@@ -527,26 +531,26 @@ export const AdminPanel: React.FC = () => {
                 <p>No IP addresses are currently blocked.</p>
               </div>
             ) : (
-              <table className="w-full text-left text-sm text-slate-400">
-                <thead className="bg-slate-900 text-slate-200">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="p-4 font-medium">IP Address</th>
-                    <th className="p-4 font-medium">Blocked At</th>
-                    <th className="p-4 font-medium">Reason</th>
-                    <th className="p-4 font-medium">Actions</th>
+                    <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">IP Address</th>
+                    <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Blocked At</th>
+                    <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Reason</th>
+                    <th className="p-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-100">
                   {blockedIPs.map((blocked, idx) => (
-                    <tr key={idx} className="hover:bg-slate-700/30 transition-colors">
-                      <td className="p-4 font-mono text-white">{blocked.ip}</td>
-                      <td className="p-4">{new Date(blocked.blockedAt).toLocaleString()}</td>
-                      <td className="p-4">{blocked.reason}</td>
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 font-mono text-slate-900 font-semibold">{blocked.ip}</td>
+                      <td className="p-4 text-slate-600">{new Date(blocked.blockedAt).toLocaleString()}</td>
+                      <td className="p-4 text-slate-600">{blocked.reason}</td>
                       <td className="p-4">
                         <button
                           onClick={() => handleUnblockIP(blocked.ip)}
                           disabled={isSaving}
-                          className="px-3 py-1 bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 transition-colors text-xs font-medium disabled:opacity-50"
+                          className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded hover:bg-emerald-100 border border-emerald-200 transition-colors text-xs font-semibold disabled:opacity-50"
                         >
                           Unblock
                         </button>
@@ -561,49 +565,49 @@ export const AdminPanel: React.FC = () => {
       )}
 
       {activeTab === 'add' && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 max-w-2xl">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-indigo-400" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-2xl shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <UserPlus className="w-5 h-5 text-indigo-500" />
             Add New User
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Full Name *</label>
+              <label className="block text-sm text-slate-500 mb-1 font-medium">Full Name *</label>
               <input
                 type="text"
                 placeholder="John Doe"
                 value={newUserName}
                 onChange={(e) => setNewUserName(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Email Address *</label>
+              <label className="block text-sm text-slate-500 mb-1 font-medium">Email Address *</label>
               <input
                 type="email"
                 placeholder="john@company.com"
                 value={newUserEmail}
                 onChange={(e) => setNewUserEmail(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Password *</label>
+              <label className="block text-sm text-slate-500 mb-1 font-medium">Password *</label>
               <input
                 type="password"
                 placeholder="Set a password for this user"
                 value={newUserPassword}
                 onChange={(e) => setNewUserPassword(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Plan</label>
+                <label className="block text-sm text-slate-500 mb-1 font-medium">Plan</label>
                 <select
                   value={newUserPlan}
                   onChange={(e) => setNewUserPlan(e.target.value as any)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                 >
                   <option value="Free">Free (50 MCs/day)</option>
                   <option value="Starter">Starter (100 MCs/day)</option>
@@ -612,11 +616,11 @@ export const AdminPanel: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Role</label>
+                <label className="block text-sm text-slate-500 mb-1 font-medium">Role</label>
                 <select
                   value={newUserRole}
                   onChange={(e) => setNewUserRole(e.target.value as any)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -627,7 +631,7 @@ export const AdminPanel: React.FC = () => {
               <button
                 onClick={handleAddUser}
                 disabled={isSaving || !newUserName.trim() || !newUserEmail.trim() || !newUserPassword.trim()}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 shadow-sm"
               >
                 {isSaving ? 'Creating...' : 'Create User Account'}
               </button>
