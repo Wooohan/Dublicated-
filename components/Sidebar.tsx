@@ -15,6 +15,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, adminOnly: false, group: 'main' },
     { id: 'scraper', label: 'Live Scraper', icon: Terminal, adminOnly: true, group: 'main' },
     { id: 'carrier-search', label: 'Carrier Database', icon: Database, adminOnly: false, group: 'main' },
+    { id: 'renewal-policies', label: 'Renewal Policies', icon: Database, adminOnly: false, group: 'main' },
+    { id: 'mid-term-cancellation', label: 'Mid Term Cancellation', icon: Database, adminOnly: false, group: 'main' },
     { id: 'new-venture', label: 'New Ventures', icon: Rocket, adminOnly: false, group: 'main' },
     { id: 'fmcsa-register', label: 'FMCSA Register', icon: Database, adminOnly: false, group: 'main' },
     { id: 'subscription', label: 'Subscription', icon: CreditCard, adminOnly: false, group: 'tools' },
