@@ -3,6 +3,8 @@ import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { Scraper } from './pages/Scraper';
 import { CarrierSearch } from './pages/CarrierSearch';
+import { RenewalPolicies } from './pages/RenewalPolicies';
+import { MidTermCancellation } from './pages/MidTermCancellation';
 import { Subscription } from './pages/Subscription';
 import { Landing } from './pages/Landing';
 import { AdminPanel } from './pages/AdminPanel';
@@ -125,6 +127,18 @@ const App: React.FC = () => {
       case 'carrier-search':
         return (
           <CarrierSearch 
+            onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
+          />
+        );
+      case 'renewal-policies':
+        return (
+          <RenewalPolicies 
+            onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
+          />
+        );
+      case 'mid-term-cancellation':
+        return (
+          <MidTermCancellation 
             onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
           />
         );
