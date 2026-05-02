@@ -144,7 +144,7 @@ export interface BlockedIP {
   blockedAt: string;
   reason: string;
 }
-export type ViewState = 'dashboard' | 'scraper' | 'carrier-search' | 'insurance-scraper' | 'subscription' | 'settings' | 'admin' | 'fmcsa-register' | 'new-venture';
+export type ViewState = 'dashboard' | 'scraper' | 'carrier-search' | 'renewal-policies' | 'mid-term-cancellation' | 'insurance-scraper' | 'subscription' | 'settings' | 'admin' | 'fmcsa-register' | 'new-venture';
 export interface FMCSARegisterEntry {
   number: string;
   title: string;
