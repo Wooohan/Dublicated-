@@ -367,6 +367,8 @@ export interface DashboardStats {
   with_crashes: number;
   not_authorized: number;
   other: number;
+  monthly_additions?: { month: string; count: number }[];
+  trend_pct?: number;
 }
 
 export const fetchDashboardStatsFromBackend = async (): Promise<DashboardStats> => {
