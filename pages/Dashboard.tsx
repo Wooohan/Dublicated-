@@ -65,15 +65,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
   const notAuthorized = stats?.not_authorized ?? 0;
   const other = stats?.other ?? 0;
 
-  const entityData = [
-    { name: 'May', value: Math.round(activeCarriers * 0.6) },
-    { name: 'Jun', value: Math.round(activeCarriers * 0.3) },
-    { name: 'Jul', value: Math.round(activeCarriers * 0.5) },
-    { name: 'Aug', value: Math.round(activeCarriers * 0.8) },
-    { name: 'Sep', value: activeCarriers, active: true },
-    { name: 'Oct', value: Math.round(activeCarriers * 1.1) },
-    { name: 'Nov', value: Math.round(activeCarriers * 0.45) },
-  ];
+  const trendPct = stats?.trend_pct ?? 0;
+  const monthlyRaw: { month: string; count: number }[] = stats?.monthly_additions ?? [];
+  const MONTH_LABELS: Record<string, string> = {
+    '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun',
+    '07': 'Jul', '08': 'Aug', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
+  };
+  const entityData = monthlyRaw.map((m, i) => ({
+    name: MONTH_LABELS[m.month.slice(5)] || m.month,
+    value: m.count,
+    active: i === monthlyRaw.length - 1,
+  }));
 
   const statCards = [
     {
@@ -82,8 +84,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
       subValue: 'records',
       icon: Database,
       color: '#3B82F6',
-      trend: '+2.4%',
-      up: true,
+      trend: `${trendPct >= 0 ? '+' : ''}${trendPct}%`,
+      up: trendPct >= 0,
       sparkColor: '#3B82F6',
     },
     {
@@ -92,8 +94,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
       subValue: 'authorized',
       icon: Truck,
       color: '#10b981',
-      trend: '+5.1%',
-      up: true,
+      trend: `${trendPct >= 0 ? '+' : ''}${trendPct}%`,
+      up: trendPct >= 0,
       sparkColor: '#10b981',
     },
     {
@@ -102,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
       subValue: 'registered',
       icon: Users,
       color: '#f59e0b',
-      trend: '+1.2%',
+      trend: '',
       up: true,
       sparkColor: '#f59e0b',
     },
@@ -112,8 +114,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
       subValue: 'with contact',
       icon: Activity,
       color: '#ef4444',
-      trend: '-0.3%',
-      up: false,
+      trend: '',
+      up: true,
       sparkColor: '#ef4444',
     },
   ];
@@ -161,11 +163,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
               <p className="heading-display text-2xl text-slate-900 tracking-tight">
                 {loading ? <span className="skeleton inline-block w-20 h-7" /> : stat.value}
               </p>
-              <div className={`flex items-center gap-1 mt-1.5 text-xs font-medium ${stat.up ? 'text-emerald-600' : 'text-red-500'}`}>
-                {stat.up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                <span>{stat.trend}</span>
-                <span className="text-slate-400 font-normal ml-1">vs last month</span>
-              </div>
+              {stat.trend && (
+                <div className={`flex items-center gap-1 mt-1.5 text-xs font-medium ${stat.up ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {stat.up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                  <span>{stat.trend}</span>
+                  <span className="text-slate-400 font-normal ml-1">vs last month</span>
+                </div>
+              )}
             </div>
 
             {/* Sparkline */}
@@ -182,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ isLoading: parentLoading }
             <div>
               <h3 className="heading-display text-xl font-bold" style={{color:'#0F172A'}}>Analytics</h3>
               <p className="text-sm mt-0.5" style={{color:'#64748B'}}>
-                Optimize your carrier pipeline
+                New carriers added per month
               </p>
             </div>
             <div className="text-right">
