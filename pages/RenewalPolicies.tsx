@@ -510,14 +510,6 @@ export const RenewalPolicies: React.FC<RenewalPoliciesProps> = ({ onNavigateToIn
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FilterGroup title="Insurance Policy" icon={<Shield size={12} />} defaultOpen={true}>
                 <div>
-                  <FilterLabel>Required</FilterLabel>
-                  <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
-                </div>
-                <div>
-                  <FilterLabel>Insurance Company</FilterLabel>
-                  <MultiSelect options={INSURANCE_COMPANIES} selected={filters.insuranceCompany} onChange={v => setFilters(p => ({ ...p, insuranceCompany: v }))} placeholder="All" />
-                </div>
-                <div>
                   <FilterLabel>Renewal Policy Monthly</FilterLabel>
                   <FilterSelect name="renewalPolicyMonths" value={filters.renewalPolicyMonths} onChange={handleFilterChange} options={RENEWAL_MONTH_OPTIONS} />
                 </div>
@@ -540,13 +532,12 @@ export const RenewalPolicies: React.FC<RenewalPoliciesProps> = ({ onNavigateToIn
                   </div>
                 </div>
                 <div>
-                  <FilterLabel>Insurance Cancellation Date</FilterLabel>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="date" name="insCancellationDateFrom" value={filters.insCancellationDateFrom} onChange={handleFilterChange}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-                    <input type="date" name="insCancellationDateTo" value={filters.insCancellationDateTo} onChange={handleFilterChange}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-                  </div>
+                  <FilterLabel>Required</FilterLabel>
+                  <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
+                </div>
+                <div>
+                  <FilterLabel>Insurance Company</FilterLabel>
+                  <MultiSelect options={INSURANCE_COMPANIES} selected={filters.insuranceCompany} onChange={v => setFilters(p => ({ ...p, insuranceCompany: v }))} placeholder="All" />
                 </div>
                 <div>
                   <FilterLabel>Required Amount</FilterLabel>
