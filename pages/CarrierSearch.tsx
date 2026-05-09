@@ -59,19 +59,43 @@ const RENEWAL_MONTH_OPTIONS = [
   { value: '4', label: '4th Month' },
   { value: '5', label: '5th Month' },
 ];
+const formatDateToMMDDYY = (dateStr: string | undefined): string => {
+  if (!dateStr || dateStr === 'N/A' || dateStr === '--') return dateStr || '--';
+  try {
+    let month: number, day: number, year: number;
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        month = parseInt(parts[0], 10);
+        day = parseInt(parts[1], 10);
+        year = parseInt(parts[2], 10);
+      } else return dateStr;
+    } else if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        year = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+        day = parseInt(parts[2], 10);
+      } else return dateStr;
+    } else return dateStr;
+    if (isNaN(month) || isNaN(day) || isNaN(year)) return dateStr;
+    const yy = String(year).slice(-2);
+    return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${yy}`;
+  } catch { return dateStr; }
+};
+
 const calculateRenewalDate = (effectiveDate: string | undefined): string | null => {
   if (!effectiveDate || effectiveDate === 'N/A' || effectiveDate === '--') return null;
   try {
     let month: number, day: number, year: number;
-    let isSlashFormat = false;
-    // Try MM/DD/YYYY format
+    // Try MM/DD/YYYY or MM/DD/YY format
     if (effectiveDate.includes('/')) {
-      isSlashFormat = true;
       const parts = effectiveDate.split('/');
       if (parts.length === 3) {
         month = parseInt(parts[0], 10);
         day = parseInt(parts[1], 10);
         year = parseInt(parts[2], 10);
+        if (year < 100) year += 2000;
       } else return null;
     // Try YYYY-MM-DD format
     } else if (effectiveDate.includes('-')) {
@@ -93,8 +117,9 @@ const calculateRenewalDate = (effectiveDate: string | undefined): string | null 
     }
     const mm = String(month).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
-    // Return in the same format as the effective date
-    return isSlashFormat ? `${mm}/${dd}/${renewalYear}` : `${renewalYear}-${mm}-${dd}`;
+    const yy = String(renewalYear).slice(-2);
+    // Always return mm/dd/yy format
+    return `${mm}/${dd}/${yy}`;
   } catch { return null; }
 };
 const calculateYearsInBusiness = (mcs150Date: string | undefined): number | null => {
@@ -1019,9 +1044,9 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${p.canclEffectiveDate ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>{p.status}</span>
                             </td>
                             <td className="py-3 px-4">
-                              <p className="text-xs text-slate-700">Eff: {p.effectiveDate}</p>
+                              <p className="text-xs text-slate-700">Eff: {formatDateToMMDDYY(p.effectiveDate)}</p>
                               {p.canclEffectiveDate ? (
-                                <p className="text-xs text-red-500">Cancel: {p.canclEffectiveDate}</p>
+                                <p className="text-xs text-red-500">Cancel: {formatDateToMMDDYY(p.canclEffectiveDate)}</p>
                               ) : calculateRenewalDate(p.effectiveDate) ? (
                                 <p className="text-xs text-[#7C5CFC] font-medium">Renewal: {calculateRenewalDate(p.effectiveDate)}</p>
                               ) : null}
@@ -1173,18 +1198,18 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                             const basicColor = getBasicColor(score.category, val);
                             return (
                               <div key={idx} className="flex flex-col items-center gap-2">
-                                <div className="relative w-20 h-20">
+                                <div className="relative w-[86px] h-[86px]">
                                   <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
                                     <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(226,232,240,0.8)" strokeWidth="5" />
                                     <circle cx="40" cy="40" r={r} fill="none" stroke={basicColor.stroke} strokeWidth="5" strokeDasharray={`${pct * circ} ${circ}`} strokeLinecap="round" />
                                   </svg>
                                   <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-slate-900 font-black text-sm">{score.measure}</span>
+                                    <span className="text-slate-900 font-black text-[15px]">{score.measure}</span>
                                   </div>
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-500 text-center leading-tight">{score.category}</span>
+                                <span className="text-[11px] font-bold text-slate-500 text-center leading-tight">{score.category}</span>
                                 {basicColor.label && (
-                                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${basicColor.badgeCls}`}>{basicColor.label}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${basicColor.badgeCls}`}>{basicColor.label}</span>
                                 )}
                               </div>
                             );
