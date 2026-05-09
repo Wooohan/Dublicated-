@@ -48,6 +48,10 @@ const App: React.FC = () => {
   
   const [allCarriers, setAllCarriers] = useState<CarrierData[]>([]);
   const [isLoadingCarriers, setIsLoadingCarriers] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    const saved = localStorage.getItem('hussfix_sidebar_collapsed');
+    return saved === 'true';
+  });
   useEffect(() => {
     if (user) {
       handleCarrierSearch({});
@@ -74,6 +78,9 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('hussfix_view', currentView);
   }, [currentView]);
+  useEffect(() => {
+    localStorage.setItem('hussfix_sidebar_collapsed', String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
   const handleLogin = (userData: User) => {
     setUser(userData);
     setCurrentView(userData.role === 'admin' ? 'admin' : 'dashboard');
@@ -175,9 +182,11 @@ const App: React.FC = () => {
           setCurrentView={handleViewChange} 
           user={user}
           onLogout={handleLogout}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
         
-        <main className="flex-1 ml-60 relative h-screen overflow-y-auto overflow-x-hidden">
+        <main className={`flex-1 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-60'} relative h-screen overflow-y-auto overflow-x-hidden transition-all duration-300`}>
           {user && renderContent()}
         </main>
       </div>
