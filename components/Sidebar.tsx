@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
 
   return (
     <aside className={`${collapsed ? 'w-[72px]' : 'w-60'} sidebar-bg flex flex-col h-screen fixed left-0 top-0 z-10 transition-all duration-300`}>
-      {/* Logo & Collapse Toggle */}
+      {/* Logo */}
       <div className={`${collapsed ? 'px-3' : 'px-5'} py-5 flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
         <div className="w-9 h-9 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0" style={{background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', boxShadow: '0 4px 12px rgba(124,92,252,0.3)'}}>
           <Truck className="w-4 h-4 text-white" />
@@ -80,13 +80,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
             </div>
           </div>
         )}
-        <button
-          onClick={onToggleCollapse}
-          className={`flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600 ${collapsed ? 'mt-3' : ''}`}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
       </div>
 
       <div className={`${collapsed ? 'mx-2' : 'mx-4'} h-px bg-slate-100 mb-3`} />
@@ -104,6 +97,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, u
             {toolItems.map(item => <NavItem key={item.id} item={item} />)}
           </>
         )}
+
+        {/* Collapse Toggle */}
+        <div className="pt-4">
+          <button
+            onClick={onToggleCollapse}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all`}
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-xl">
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </div>
+            {!collapsed && (
+              <span className="text-sm font-medium">Collapse</span>
+            )}
+          </button>
+        </div>
       </nav>
 
       {/* User section */}
