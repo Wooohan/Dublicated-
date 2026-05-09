@@ -259,7 +259,7 @@ export const RenewalPolicies: React.FC<RenewalPoliciesProps> = ({ onNavigateToIn
     insuranceCompany: [] as string[],
     insEffectiveDateFrom: '',
     insEffectiveDateTo: '',
-    renewalPolicyMonths: '',
+    renewalPolicyMonths: '1',
     renewalDateFrom: '',
     renewalDateTo: '',
     bipdMin: '',
@@ -289,7 +289,7 @@ export const RenewalPolicies: React.FC<RenewalPoliciesProps> = ({ onNavigateToIn
   
   useEffect(() => {
     getCarrierCountFromSupabase().then(setTotalCount);
-    loadCarriers({});
+    loadCarriers({ renewalPolicyMonths: '1' });
   }, []);
   const loadInspections = useCallback(async (dot: string, page: number) => {
     setInspLoading(true);
