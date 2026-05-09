@@ -817,11 +817,14 @@ export const RenewalPolicies: React.FC<RenewalPoliciesProps> = ({ onNavigateToIn
                     {copiedField === 'dot' ? <Check size={12} /> : <Copy size={12} className="opacity-70" />}
                   </button>
                   <button 
-                    onClick={() => handleCopy(selectedCarrier.mcNumber || '', 'mc')}
+                    onClick={() => {
+                      const mcNum = (selectedCarrier.mcNumber || '').replace(/^MC-?/i, '');
+                      handleCopy(mcNum, 'mc');
+                    }}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1.5 flex items-center gap-2 transition-all active:scale-95 shadow-sm"
                   >
                     <span className="font-bold text-[11px] tracking-wide">
-                      MC {selectedCarrier.mcNumber}
+                      MC {(selectedCarrier.mcNumber || '').replace(/^MC-?/i, '')}
                     </span>
                     {copiedField === 'mc' ? <Check size={12} /> : <Copy size={12} className="opacity-70" />}
                   </button>
@@ -1012,7 +1015,10 @@ export const RenewalPolicies: React.FC<RenewalPoliciesProps> = ({ onNavigateToIn
                     <ShieldCheck size={16} className="text-slate-400" />
                     <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Insurance History</h4>
                   </div>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[#7C5CFC] hover:bg-[#F5F3FF]0 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                  <button 
+                    onClick={() => window.print()}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#7C5CFC] hover:bg-[#7C5CFC] text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+                  >
                     <Download size={14} /> Export PDF
                   </button>
                 </div>
