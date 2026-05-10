@@ -169,8 +169,8 @@ const MultiSelect: React.FC<{
     </div>
   );
 };
-const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => {
-  const [open, setOpen] = useState(true);
+const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon, children, defaultOpen = true }) => {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
       <button
@@ -505,106 +505,9 @@ export const MidTermCancellation: React.FC<MidTermCancellationProps> = ({ onNavi
       {/* Filter Panel */}
       {showFilters && (
         <div className="mb-4 p-4 bg-white border border-slate-200 rounded-3xl overflow-y-auto max-h-[55vh] custom-scrollbar shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <FilterGroup title="Motor Carrier" icon={<Truck size={12} />}>
-              <div>
-                <FilterLabel>Entity Type</FilterLabel>
-                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={[
-                  { value: '', label: 'All' },
-                  { value: 'CARRIER', label: 'Carrier' },
-                  { value: 'BROKER', label: 'Broker' },
-                ]} />
-              </div>
-              <div>
-                <FilterLabel>Active</FilterLabel>
-                <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-              <div>
-                <FilterLabel>State</FilterLabel>
-                <MultiSelect options={US_STATES} selected={filters.state} onChange={v => setFilters(p => ({ ...p, state: v }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>DOT Number</FilterLabel>
-                <input type="number" name="dot" value={filters.dot} onChange={handleFilterChange} placeholder="" min={0}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-              </div>
-              <div>
-                <FilterLabel>Years in Business</FilterLabel>
-                <MinMaxInputs nameMin="yearsInBusinessMin" nameMax="yearsInBusinessMax"
-                  valueMin={filters.yearsInBusinessMin} valueMax={filters.yearsInBusinessMax} onChange={handleFilterChange} />
-              </div>
-              <div>
-                <FilterLabel>Has Email</FilterLabel>
-                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-              <div>
-                <FilterLabel>Has BOC-3</FilterLabel>
-                <FilterSelect name="hasBoc3" value={filters.hasBoc3} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-              <div>
-                <FilterLabel>Company Rep. Available</FilterLabel>
-                <FilterSelect name="hasCompanyRep" value={filters.hasCompanyRep} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-            </FilterGroup>
-            <FilterGroup title="Carrier Operation" icon={<Activity size={12} />}>
-              <div>
-                <FilterLabel>Classification</FilterLabel>
-                <MultiSelect options={OPERATION_CLASSIFICATIONS} selected={filters.classification} onChange={v => setFilters(p => ({ ...p, classification: v }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>Carrier Operation</FilterLabel>
-                <MultiSelect options={CARRIER_OPERATIONS} selected={filters.carrierOperation} onChange={v => setFilters(p => ({ ...p, carrierOperation: v }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>Hazmat</FilterLabel>
-                <FilterSelect name="hazmat" value={filters.hazmat} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-              <div>
-                <FilterLabel>Power Units</FilterLabel>
-                <MinMaxInputs nameMin="powerUnitsMin" nameMax="powerUnitsMax"
-                  valueMin={filters.powerUnitsMin} valueMax={filters.powerUnitsMax} onChange={handleFilterChange} />
-              </div>
-              <div>
-                <FilterLabel>Drivers</FilterLabel>
-                <MinMaxInputs nameMin="driversMin" nameMax="driversMax"
-                  valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
-              </div>
-              <div>
-                <FilterLabel>Cargo</FilterLabel>
-                <MultiSelect options={CARGO_TYPES} selected={filters.cargo} onChange={v => setFilters(p => ({ ...p, cargo: v }))} placeholder="All" />
-              </div>
-            </FilterGroup>
+          {/* Upper row: Insurance Policy & Safety (open by default) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <FilterGroup title="Insurance Policy" icon={<Shield size={12} />}>
-              <div>
-                <FilterLabel>Required</FilterLabel>
-                <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>Insurance Company</FilterLabel>
-                <MultiSelect options={INSURANCE_COMPANIES} selected={filters.insuranceCompany} onChange={v => setFilters(p => ({ ...p, insuranceCompany: v }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>Renewal Policy Monthly</FilterLabel>
-                <FilterSelect name="renewalPolicyMonths" value={filters.renewalPolicyMonths} onChange={handleFilterChange} options={RENEWAL_MONTH_OPTIONS} />
-              </div>
-              <div>
-                <FilterLabel>Renewal Policy Date</FilterLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="date" name="renewalDateFrom" value={filters.renewalDateFrom} onChange={handleFilterChange}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-                  <input type="date" name="renewalDateTo" value={filters.renewalDateTo} onChange={handleFilterChange}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-                </div>
-              </div>
-              <div>
-                <FilterLabel>Insurance Effective Date</FilterLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="date" name="insEffectiveDateFrom" value={filters.insEffectiveDateFrom} onChange={handleFilterChange}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-                  <input type="date" name="insEffectiveDateTo" value={filters.insEffectiveDateTo} onChange={handleFilterChange}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
-                </div>
-              </div>
               <div>
                 <FilterLabel>Insurance Cancellation Date</FilterLabel>
                 <div className="grid grid-cols-2 gap-2">
@@ -613,6 +516,14 @@ export const MidTermCancellation: React.FC<MidTermCancellationProps> = ({ onNavi
                   <input type="date" name="insCancellationDateTo" value={filters.insCancellationDateTo} onChange={handleFilterChange}
                     className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
                 </div>
+              </div>
+              <div>
+                <FilterLabel>Required</FilterLabel>
+                <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Insurance Company</FilterLabel>
+                <MultiSelect options={INSURANCE_COMPANIES} selected={filters.insuranceCompany} onChange={v => setFilters(p => ({ ...p, insuranceCompany: v }))} placeholder="All" />
               </div>
               <div>
                 <FilterLabel>Required Amount</FilterLabel>
@@ -660,6 +571,77 @@ export const MidTermCancellation: React.FC<MidTermCancellationProps> = ({ onNavi
               <div>
                 <FilterLabel>Inspections</FilterLabel>
                 <MinMaxInputs nameMin="inspectionsMin" nameMax="inspectionsMax" valueMin={filters.inspectionsMin} valueMax={filters.inspectionsMax} onChange={handleFilterChange} />
+              </div>
+            </FilterGroup>
+          </div>
+          {/* Lower row: Motor Carrier & Carrier Operations (collapsed by default) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FilterGroup title="Motor Carrier" icon={<Truck size={12} />} defaultOpen={false}>
+              <div>
+                <FilterLabel>Entity Type</FilterLabel>
+                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={[
+                  { value: '', label: 'All' },
+                  { value: 'CARRIER', label: 'Carrier' },
+                  { value: 'BROKER', label: 'Broker' },
+                ]} />
+              </div>
+              <div>
+                <FilterLabel>Active</FilterLabel>
+                <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+              <div>
+                <FilterLabel>State</FilterLabel>
+                <MultiSelect options={US_STATES} selected={filters.state} onChange={v => setFilters(p => ({ ...p, state: v }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>DOT Number</FilterLabel>
+                <input type="number" name="dot" value={filters.dot} onChange={handleFilterChange} placeholder="" min={0}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
+              </div>
+              <div>
+                <FilterLabel>Years in Business</FilterLabel>
+                <MinMaxInputs nameMin="yearsInBusinessMin" nameMax="yearsInBusinessMax"
+                  valueMin={filters.yearsInBusinessMin} valueMax={filters.yearsInBusinessMax} onChange={handleFilterChange} />
+              </div>
+              <div>
+                <FilterLabel>Has Email</FilterLabel>
+                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+              <div>
+                <FilterLabel>Has BOC-3</FilterLabel>
+                <FilterSelect name="hasBoc3" value={filters.hasBoc3} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+              <div>
+                <FilterLabel>Company Rep. Available</FilterLabel>
+                <FilterSelect name="hasCompanyRep" value={filters.hasCompanyRep} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+            </FilterGroup>
+            <FilterGroup title="Carrier Operation" icon={<Activity size={12} />} defaultOpen={false}>
+              <div>
+                <FilterLabel>Classification</FilterLabel>
+                <MultiSelect options={OPERATION_CLASSIFICATIONS} selected={filters.classification} onChange={v => setFilters(p => ({ ...p, classification: v }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Carrier Operation</FilterLabel>
+                <MultiSelect options={CARRIER_OPERATIONS} selected={filters.carrierOperation} onChange={v => setFilters(p => ({ ...p, carrierOperation: v }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Hazmat</FilterLabel>
+                <FilterSelect name="hazmat" value={filters.hazmat} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+              <div>
+                <FilterLabel>Power Units</FilterLabel>
+                <MinMaxInputs nameMin="powerUnitsMin" nameMax="powerUnitsMax"
+                  valueMin={filters.powerUnitsMin} valueMax={filters.powerUnitsMax} onChange={handleFilterChange} />
+              </div>
+              <div>
+                <FilterLabel>Drivers</FilterLabel>
+                <MinMaxInputs nameMin="driversMin" nameMax="driversMax"
+                  valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
+              </div>
+              <div>
+                <FilterLabel>Cargo</FilterLabel>
+                <MultiSelect options={CARGO_TYPES} selected={filters.cargo} onChange={v => setFilters(p => ({ ...p, cargo: v }))} placeholder="All" />
               </div>
             </FilterGroup>
           </div>
