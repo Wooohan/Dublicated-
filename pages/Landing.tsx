@@ -275,8 +275,8 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
       {/* ── HERO WITH 3D ── */}
       <section style={{ position: 'relative', zIndex: 1, paddingTop: 140, paddingBottom: 100, textAlign: 'center', padding: '140px 24px 100px', overflow: 'hidden' }}>
         {/* 3D Canvas Background */}
-        <div style={{ position: 'absolute', inset: 0, top: 64, height: 600, zIndex: 0, pointerEvents: 'none' }}>
-          <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ width: '100%', height: '100%' }}>
+        <div style={{ position: 'absolute', inset: 0, top: 64, height: 600, zIndex: -1, pointerEvents: 'none', overflow: 'hidden' }}>
+          <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ width: '100%', height: '100%', display: 'block' }}>
             <Suspense fallback={null}>
               <HeroScene />
             </Suspense>
@@ -322,8 +322,8 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         </div>
 
         {/* 3D Hero mockup */}
-        <div style={{ maxWidth: 1000, margin: '72px auto 0', position: 'relative', height: 500 }}>
-          <Canvas camera={{ position: [0, 0, 6], fov: 50 }} style={{ width: '100%', height: '100%', borderRadius: 24 }}>
+        <div style={{ maxWidth: 1000, margin: '72px auto 0', position: 'relative', height: 500, zIndex: 10 }}>
+          <Canvas camera={{ position: [0, 0, 6], fov: 50 }} style={{ width: '100%', height: '100%', borderRadius: 24, display: 'block' }}>
             <Suspense fallback={null}>
               <DashboardScene />
             </Suspense>
