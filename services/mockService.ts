@@ -52,6 +52,7 @@ export const downloadCSV = (data: CarrierData[]) => {
     'Date', 'MC', 'Email', 'Entity Type', 'Operating Authority Status', 'Out of Service Date',
     'Legal_Name', 'DBA Name', 'Physical Address', 'Phone', 'Mailing Address', 'USDOT Number',
     'State Carrier ID Number', 'Power Units', 'Drivers', 'DUNS Number',
+    'Company Officer 1', 'Company Officer 2',
     'MCS-150 Form Date', 'MCS-150 Mileage (Year)', 'Operation Classification',
     'Carrier Operation', 'Cargo Carried', 'Safety Rating', 'Rating Date',
     'BASIC Scores', 'OOS Rates', 'Inspections'
@@ -66,7 +67,8 @@ export const downloadCSV = (data: CarrierData[]) => {
     esc(row.legalName), esc(row.dbaName), esc(row.physicalAddress),
     esc(row.phone), esc(row.mailingAddress), esc(row.dotNumber),
     esc(row.stateCarrierId), esc(row.powerUnits), esc(row.drivers),
-    esc(row.dunsNumber), esc(row.mcs150Date), esc(row.mcs150Mileage),
+    esc(row.dunsNumber), esc(row.companyOfficer1), esc(row.companyOfficer2),
+    esc(row.mcs150Date), esc(row.mcs150Mileage),
     esc(row.operationClassification.join(', ')),
     esc(row.carrierOperation.join(', ')),
     esc(row.cargoCarried.join(', ')),
