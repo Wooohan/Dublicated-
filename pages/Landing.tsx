@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import {
   Truck, ChevronRight, Check, Shield, Zap, ArrowRight, Star,
   BarChart2, Database, Mail, Download, Filter, Search,
@@ -8,12 +8,122 @@ import {
 import { User } from '../types';
 import { updateUserInSupabase, isIPBlocked } from '../services/userService';
 import { loginUser, registerUser } from '../services/backendApiService';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, Sphere, Box, Float, Environment } from '@react-three/drei';
+import * as THREE from 'three';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 interface LandingProps {
   onLogin: (user: User) => void;
 }
+
+// ─────────────────────────────────────────────────────────────
+// 3D COMPONENTS
+// ─────────────────────────────────────────────────────────────
+
+// Animated 3D Sphere
+const AnimatedSphere = ({ position, color, scale = 1 }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += 0.001;
+      meshRef.current.rotation.y += 0.002;
+      meshRef.current.position.y += Math.sin(state.clock.elapsedTime * 0.5) * 0.001;
+    }
+  });
+
+  return (
+    <Sphere ref={meshRef} args={[1, 32, 32]} position={position} scale={scale}>
+      <meshPhongMaterial color={color} emissive={color} emissiveIntensity={0.2} wireframe={false} />
+    </Sphere>
+  );
+};
+
+// Animated 3D Box
+const AnimatedBox = ({ position, color, scale = 1 }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += 0.003;
+      meshRef.current.rotation.z += 0.002;
+      meshRef.current.position.z += Math.cos(state.clock.elapsedTime * 0.3) * 0.001;
+    }
+  });
+
+  return (
+    <Box ref={meshRef} args={[1, 1, 1]} position={position} scale={scale}>
+      <meshPhongMaterial color={color} emissive={color} emissiveIntensity={0.15} />
+    </Box>
+  );
+};
+
+// 3D Hero Background Scene
+const HeroScene = () => {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+      groupRef.current.rotation.y += 0.0005;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <AnimatedSphere position={[-3, 2, -5]} color="#7C5CFC" scale={1.5} />
+      <AnimatedBox position={[3, -1, -4]} color="#A78BFA" scale={1.2} />
+      <AnimatedSphere position={[0, -3, -3]} color="#8B5CF6" scale={0.8} />
+      <AnimatedBox position={[-2, 1, -6]} color="#9B7EFD" scale={0.9} />
+      
+      {/* Lighting */}
+      <pointLight position={[10, 10, 10]} intensity={1} color="#ffffff" />
+      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#7C5CFC" />
+      <ambientLight intensity={0.6} />
+    </group>
+  );
+};
+
+// 3D Dashboard Mockup Scene
+const DashboardScene = () => {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.3;
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.2) * 0.5;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Main dashboard card */}
+      <Box args={[4, 2.5, 0.1]} position={[0, 0, 0]} scale={1}>
+        <meshPhongMaterial color="#F8F9FC" emissive="#F8F9FC" emissiveIntensity={0.1} />
+      </Box>
+      
+      {/* Floating stat cards */}
+      <Box args={[1.2, 0.8, 0.05]} position={[2.2, 1.5, 0.5]} scale={1}>
+        <meshPhongMaterial color="#FFFFFF" emissive="#7C5CFC" emissiveIntensity={0.1} />
+      </Box>
+      
+      <Box args={[1.2, 0.8, 0.05]} position={[-2.2, -1.2, 0.5]} scale={1}>
+        <meshPhongMaterial color="#FFFFFF" emissive="#10B981" emissiveIntensity={0.1} />
+      </Box>
+
+      {/* Lighting */}
+      <pointLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" />
+      <pointLight position={[-5, -5, 5]} intensity={0.8} color="#7C5CFC" />
+      <ambientLight intensity={0.7} />
+    </group>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// UTILITY COMPONENTS
+// ─────────────────────────────────────────────────────────────
 
 // Animated counter hook
 const useCounter = (target: number, duration = 1800, start = false) => {
@@ -162,9 +272,18 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <section style={{ position: 'relative', zIndex: 1, paddingTop: 140, paddingBottom: 100, textAlign: 'center', padding: '140px 24px 100px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      {/* ── HERO WITH 3D ── */}
+      <section style={{ position: 'relative', zIndex: 1, paddingTop: 140, paddingBottom: 100, textAlign: 'center', padding: '140px 24px 100px', overflow: 'hidden' }}>
+        {/* 3D Canvas Background */}
+        <div style={{ position: 'absolute', inset: 0, top: 64, height: 600, zIndex: 0, pointerEvents: 'none' }}>
+          <Canvas camera={{ position: [0, 0, 8], fov: 50 }} style={{ width: '100%', height: '100%' }}>
+            <Suspense fallback={null}>
+              <HeroScene />
+            </Suspense>
+          </Canvas>
+        </div>
+
+        <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative', zIndex: 10 }}>
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.2)', color: '#7C5CFC', fontSize: 12, fontWeight: 600, marginBottom: 32, letterSpacing: '0.05em' }}>
             <Zap size={12} /> AUTOMATED FMCSA DATA PIPELINE
@@ -202,61 +321,13 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
           </div>
         </div>
 
-        {/* Hero mockup */}
-        <div style={{ maxWidth: 1000, margin: '72px auto 0', position: 'relative' }}>
-          <div style={{ background: 'linear-gradient(135deg, rgba(124,92,252,0.1), rgba(124,92,252,0.03))', border: '1px solid rgba(124,92,252,0.15)', borderRadius: 24, padding: 3, boxShadow: '0 40px 100px rgba(0,0,0,0.1), 0 0 60px rgba(124,92,252,0.06)' }}>
-            <div style={{ background: '#F8F9FC', borderRadius: 22, overflow: 'hidden' }}>
-              {/* Mock browser bar */}
-              <div style={{ background: '#F1F3F8', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {['#EF4444','#F59E0B','#10B981'].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />)}
-                </div>
-                <div style={{ flex: 1, background: 'rgba(0,0,0,0.05)', borderRadius: 8, padding: '5px 12px', fontSize: 12, color: '#94A3B8', marginLeft: 8 }}>
-                  app.freightintel.io/carrier-database
-                </div>
-              </div>
-              {/* Mock table */}
-              <div style={{ padding: '20px 24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ ...S, color: '#0F172A', fontSize: 16, fontWeight: 700 }}>Carrier Database</span>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ padding: '6px 14px', borderRadius: 10, background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.2)', color: '#7C5CFC', fontSize: 12 }}>Advanced Filters</div>
-                    <div style={{ padding: '6px 14px', borderRadius: 10, background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', color: 'white', fontSize: 12 }}>Export CSV</div>
-                  </div>
-                </div>
-                {/* Table head */}
-                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 120px 90px 80px', gap: 16, padding: '8px 12px', borderBottom: '1px solid rgba(0,0,0,0.06)', marginBottom: 4 }}>
-                  {['MC #','Legal Name','DOT','Status','Entity'].map(h => (
-                    <span key={h} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94A3B8' }}>{h}</span>
-                  ))}
-                </div>
-                {[
-                  { mc: 'MC-123456', name: 'Summit Logistics LLC', dot: '3821944', status: 'ACTIVE', entity: 'CARRIER', active: true },
-                  { mc: 'MC-789012', name: 'Blue Ridge Transport', dot: '2914532', status: 'ACTIVE', entity: 'CARRIER', active: true },
-                  { mc: 'MC-345678', name: 'Horizon Freight Brokers', dot: '1823771', status: 'INACTIVE', entity: 'BROKER', active: false },
-                  { mc: 'MC-901234', name: 'Eagle Eye Trucking Co.', dot: '4012893', status: 'ACTIVE', entity: 'CARRIER', active: true },
-                  { mc: 'MC-567890', name: 'Pacific Rim Carriers', dot: '3456781', status: 'ACTIVE', entity: 'CARRIER', active: true },
-                ].map((row, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 120px 90px 80px', gap: 16, padding: '10px 12px', borderRadius: 10, background: i === 1 ? 'rgba(124,92,252,0.05)' : 'transparent', borderBottom: '1px solid rgba(0,0,0,0.04)', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, color: '#7C5CFC', fontWeight: 600, fontFamily: 'monospace' }}>{row.mc}</span>
-                    <span style={{ fontSize: 13, color: '#1E293B', fontWeight: 500 }}>{row.name}</span>
-                    <span style={{ fontSize: 12, color: '#94A3B8', fontFamily: 'monospace' }}>{row.dot}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: row.active ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', color: row.active ? '#059669' : '#DC2626', border: `1px solid ${row.active ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`, display: 'inline-block' }}>{row.status}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: row.entity === 'CARRIER' ? 'rgba(124,92,252,0.08)' : 'rgba(251,146,60,0.08)', color: row.entity === 'CARRIER' ? '#7C5CFC' : '#EA580C', border: `1px solid ${row.entity === 'CARRIER' ? 'rgba(124,92,252,0.2)' : 'rgba(251,146,60,0.2)'}`, display: 'inline-block' }}>{row.entity}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* Floating stat cards */}
-          <div style={{ position: 'absolute', top: -16, right: -24, background: '#FFFFFF', border: '1px solid rgba(124,92,252,0.15)', borderRadius: 16, padding: '14px 20px', boxShadow: '0 16px 40px rgba(0,0,0,0.1)', display: 'none' }} className="md:block">
-            <div style={{ fontSize: 10, color: '#94A3B8', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email Coverage</div>
-            <div style={{ ...S, fontSize: 24, fontWeight: 700, color: '#7C5CFC' }}>68.4%</div>
-          </div>
-          <div style={{ position: 'absolute', bottom: 24, left: -24, background: '#FFFFFF', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 16, padding: '14px 20px', boxShadow: '0 16px 40px rgba(0,0,0,0.1)', display: 'none' }} className="md:block">
-            <div style={{ fontSize: 10, color: '#94A3B8', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Active Carriers</div>
-            <div style={{ ...S, fontSize: 24, fontWeight: 700, color: '#059669' }}>2.1M+</div>
-          </div>
+        {/* 3D Hero mockup */}
+        <div style={{ maxWidth: 1000, margin: '72px auto 0', position: 'relative', height: 500 }}>
+          <Canvas camera={{ position: [0, 0, 6], fov: 50 }} style={{ width: '100%', height: '100%', borderRadius: 24 }}>
+            <Suspense fallback={null}>
+              <DashboardScene />
+            </Suspense>
+          </Canvas>
         </div>
       </section>
 
@@ -373,37 +444,33 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#F8F9FC', borderRadius: 12, border: '1px solid rgba(0,0,0,0.06)' }}>
                   <item.icon size={14} style={{ color: '#7C5CFC', flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: '#475569' }}>{item.v}</span>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, color: '#1E293B', fontWeight: 500 }}>{item.v}</div>
+                  </div>
                 </div>
               ))}
             </div>
-            <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: '#059669', fontWeight: 600 }}>✓ Safety Rating: SATISFACTORY</span>
-              <span style={{ fontSize: 11, color: '#CBD5E1' }}>Since 2019</span>
-            </div>
+            <button style={{ width: '100%', padding: '12px 16px', borderRadius: 12, background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', border: 'none', color: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              View Full Profile
+            </button>
           </div>
 
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#059669', fontSize: 11, fontWeight: 700, marginBottom: 20, letterSpacing: '0.06em' }}>
-              📊 COMPLETE PROFILES
+              ✓ DETAILED PROFILES
             </div>
-            <h2 style={{ ...S, fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, color: '#0F172A', marginBottom: 20, lineHeight: 1.15 }}>Comprehensive Carrier Intelligence</h2>
+            <h2 style={{ ...S, fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, color: '#0F172A', marginBottom: 20, lineHeight: 1.15 }}>Complete Carrier Intelligence</h2>
             <p style={{ fontSize: 16, color: '#64748B', lineHeight: 1.7, marginBottom: 32 }}>
-              Every carrier profile includes contact details, authority status, insurance history, safety ratings, inspection records, crash data, and fleet information — all in one view.
+              Access comprehensive carrier profiles with safety ratings, compliance history, insurance information, and verified contact details all in one place.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              {[
-                { icon: ShieldCheck, label: 'Safety Scores', desc: 'BASIC percentiles & SMS', color: '#10B981' },
-                { icon: FileText, label: 'Inspection History', desc: 'Full violation records', color: '#7C5CFC' },
-                { icon: Shield, label: 'Insurance Data', desc: 'Coverage & renewal dates', color: '#F59E0B' },
-                { icon: Download, label: 'CSV Export', desc: 'Bulk export ready', color: '#EC4899' },
-              ].map(f => (
-                <div key={f.label} style={{ padding: 16, background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 16 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${f.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-                    <f.icon size={16} style={{ color: f.color }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {['Real-time BASIC safety scores and inspection history', 'Insurance company and renewal date tracking', 'Verified phone and email contacts', 'Fleet size, years in business, and operational data'].map(item => (
+                <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Check size={12} style={{ color: '#059669' }} />
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 4 }}>{f.label}</div>
-                  <div style={{ fontSize: 12, color: '#94A3B8' }}>{f.desc}</div>
+                  <span style={{ fontSize: 14, color: '#64748B' }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -484,9 +551,17 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
               { icon: Globe, title: 'FMCSA Register', desc: 'Monitor new authority applications and be first to reach carriers before they are established.', color: '#06B6D4', tag: 'Pro' },
               { icon: Users, title: 'Batch Enrichment', desc: 'Enrich thousands of carriers with safety ratings, insurance status, and contact data in bulk.', color: '#84CC16', tag: 'Pro' },
             ].map((f, i) => (
-              <div key={i} style={{ padding: 24, background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 20, position: 'relative', transition: 'all 0.2s', cursor: 'default' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = `${f.color}35`; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}>
+              <div key={i} style={{ padding: 24, background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 20, position: 'relative', transition: 'all 0.3s ease', cursor: 'default', transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)' }}
+                onMouseEnter={e => { 
+                  (e.currentTarget as HTMLElement).style.borderColor = `${f.color}35`; 
+                  (e.currentTarget as HTMLElement).style.transform = 'perspective(1000px) rotateX(5deg) rotateY(-5deg) translateZ(10px)'; 
+                  (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)'; 
+                }}
+                onMouseLeave={e => { 
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.07)'; 
+                  (e.currentTarget as HTMLElement).style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)'; 
+                  (e.currentTarget as HTMLElement).style.boxShadow = 'none'; 
+                }}>
                 <div style={{ position: 'absolute', top: 16, right: 16, padding: '2px 8px', borderRadius: 6, background: `${f.color}10`, border: `1px solid ${f.color}25`, fontSize: 10, fontWeight: 700, color: f.color, letterSpacing: '0.04em' }}>{f.tag}</div>
                 <div style={{ width: 44, height: 44, borderRadius: 14, background: `${f.color}10`, border: `1px solid ${f.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                   <f.icon size={20} style={{ color: f.color }} />
@@ -567,62 +642,78 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
       {/* ── AUTH MODAL ── */}
       {authMode && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(10px)' }}>
-          <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.08)', width: '100%', maxWidth: 440, padding: 36, borderRadius: 24, boxShadow: '0 40px 100px rgba(0,0,0,0.15), 0 0 0 1px rgba(124,92,252,0.08)', position: 'relative' }}>
-            <button onClick={() => setAuthMode(null)} style={{ position: 'absolute', top: 16, right: 16, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, background: '#F8F9FC', border: '1px solid rgba(0,0,0,0.08)', color: '#94A3B8', cursor: 'pointer' }}>
-              <X size={16} />
-            </button>
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 12, background: 'linear-gradient(135deg, #7C5CFC, #A78BFA)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Truck size={16} color="white" />
-                </div>
-                <span style={{ ...S, fontSize: 15, fontWeight: 700, color: '#0F172A' }}>FreightIntel</span>
-              </div>
-              <h2 style={{ ...S, fontSize: 22, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
-                {authMode === 'login' ? 'Welcome back' : 'Create your account'}
-              </h2>
-              <p style={{ fontSize: 14, color: '#94A3B8' }}>
-                {authMode === 'login' ? 'Enter your credentials to access the dashboard.' : 'Start finding carrier leads in seconds.'}
-              </p>
+          <div style={{ background: '#FFFFFF', borderRadius: 24, padding: 40, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ ...S, fontSize: 24, fontWeight: 700, color: '#0F172A' }}>{authMode === 'login' ? 'Sign In' : 'Create Account'}</h2>
+              <button onClick={() => setAuthMode(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <X size={20} color="#94A3B8" />
+              </button>
             </div>
-            {error && (
-              <div style={{ marginBottom: 20, padding: '12px 16px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, color: '#DC2626', fontSize: 14 }}>
-                {error}
-              </div>
-            )}
-            <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            <form onSubmit={handleAuth}>
               {authMode === 'register' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94A3B8', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name</label>
-                  <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="John Smith"
-                    className="input-field" style={{ width: '100%', padding: '12px 16px', fontSize: 14 }} />
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 6 }}>Full Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', fontSize: 14, fontFamily: 'DM Sans, sans-serif' }}
+                    placeholder="John Doe"
+                  />
                 </div>
               )}
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94A3B8', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email Address</label>
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="name@company.com"
-                  className="input-field" style={{ width: '100%', padding: '12px 16px', fontSize: 14 }} />
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 6 }}>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', fontSize: 14, fontFamily: 'DM Sans, sans-serif' }}
+                  placeholder="you@example.com"
+                />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94A3B8', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Password</label>
-                <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-                  className="input-field" style={{ width: '100%', padding: '12px 16px', fontSize: 14 }} />
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 6 }}>Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', fontSize: 14, fontFamily: 'DM Sans, sans-serif' }}
+                  placeholder="••••••••"
+                />
               </div>
-              <button type="submit" disabled={isLoading}
-                style={{ width: '100%', padding: '14px', borderRadius: 12, background: isLoading ? 'rgba(124,92,252,0.5)' : 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', border: 'none', color: 'white', fontSize: 15, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 16px rgba(124,92,252,0.25)', fontFamily: 'DM Sans, sans-serif', marginTop: 4 }}>
-                {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
+
+              {error && (
+                <div style={{ padding: 12, borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#DC2626', fontSize: 13, marginBottom: 16 }}>
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 10, background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', border: 'none', color: 'white', fontSize: 15, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1, fontFamily: 'DM Sans, sans-serif' }}
+              >
+                {isLoading ? 'Loading...' : authMode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             </form>
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#CBD5E1' }}>
-              {authMode === 'login' ? (
-                <>Don't have an account?{' '}
-                  <button onClick={() => setAuthMode('register')} style={{ color: '#7C5CFC', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Sign up free</button>
-                </>
-              ) : (
-                <>Already have an account?{' '}
-                  <button onClick={() => setAuthMode('login')} style={{ color: '#7C5CFC', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Log in</button>
-                </>
-              )}
+
+            <div style={{ textAlign: 'center', marginTop: 20 }}>
+              <span style={{ fontSize: 13, color: '#94A3B8' }}>
+                {authMode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                <button
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  style={{ background: 'none', border: 'none', color: '#7C5CFC', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
+                >
+                  {authMode === 'login' ? 'Sign Up' : 'Sign In'}
+                </button>
+              </span>
             </div>
           </div>
         </div>
@@ -630,3 +721,5 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
     </div>
   );
 };
+
+export default Landing;
