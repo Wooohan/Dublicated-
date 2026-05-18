@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search, Eye, X, MapPin, Phone, Mail, Hash, Truck, Calendar,
   Download, Activity, Loader2, ChevronDown, ChevronUp, Copy, Check,
@@ -242,17 +242,6 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     setSelectedVenture(v);
   };
 
-  const filteredVentures = useMemo(() => {
-    if (!filters.entityType) return ventures;
-    return ventures.filter(v => {
-      const et = getEntityType(v);
-      if (filters.entityType === 'CARRIER') return et === 'CARRIER';
-      if (filters.entityType === 'BROKER') return et === 'BROKER';
-      if (filters.entityType === 'CARRIER/BROKER') return et === 'CARRIER/BROKER';
-      return true;
-    });
-  }, [ventures, filters.entityType]);
-
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -266,7 +255,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     if (dateFrom) f.dateFrom = dateFrom;
     if (dateTo) f.dateTo = dateTo;
     if (filters.active) f.active = filters.active;
-
+    if (filters.entityType) f.entityType = filters.entityType;
     if (filters.states.length > 0) f.state = filters.states.join('|');
     if (filters.hasEmail) f.hasEmail = filters.hasEmail;
     if (filters.carrierOperation.length > 0) f.carrierOperation = filters.carrierOperation.join('|');
@@ -683,7 +672,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">New Ventures</h1>
           <p className="text-slate-500 text-sm">
-            Showing <span className="text-violet-600 font-bold">{filteredVentures.length}</span> records
+            Showing <span className="text-violet-600 font-bold">{ventures.length}</span> records
             {hasActiveFilters && <span className="text-slate-900 font-bold"> out of {filteredCount.toLocaleString()}</span>}
             {!hasActiveFilters && totalCount > 0 && <span className="text-slate-900 font-bold"> of {totalCount.toLocaleString()} total</span>}
           </p>
@@ -706,8 +695,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> Refresh
           </button>
           <button
-            onClick={() => downloadNewVentureCSV(filteredVentures)}
-            disabled={filteredVentures.length === 0}
+            onClick={() => downloadNewVentureCSV(ventures)}
+            disabled={ventures.length === 0}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 rounded-xl text-sm font-bold transition-all border border-slate-200 active:scale-95"
           >
             <Download size={16} /> Export CSV
@@ -805,18 +794,46 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       {/* Filter Panel */}
       {showFilters && (
         <div className="mb-4 p-4 bg-white border border-slate-200 rounded-3xl overflow-y-auto max-h-[55vh] custom-scrollbar shadow-sm">
-          {/* Upper row: Date Range & Insurance Policy (open by default) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <FilterGroup title="Date Range" icon={<Calendar size={12} />}>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <FilterGroup title="Motor Carrier" icon={<Truck size={12} />}>
               <div>
-                <FilterLabel>From Date</FilterLabel>
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+                <FilterLabel>Active</FilterLabel>
+                <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={activeStatusOptions} />
+              </div>
+              <div>
+                <FilterLabel>Entity Type</FilterLabel>
+                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={entityTypeOptions} />
+              </div>
+              <div>
+                <FilterLabel>State</FilterLabel>
+                <MultiSelect options={US_STATES} selected={filters.states} onChange={vals => setFilters(f => ({ ...f, states: vals }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>DOT Number</FilterLabel>
+                <input type="number" name="dotNumber" value={filters.dotNumber} onChange={handleFilterChange} placeholder="" min={0}
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
               </div>
               <div>
-                <FilterLabel>To Date</FilterLabel>
-                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
+                <FilterLabel>Has Email</FilterLabel>
+                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+            </FilterGroup>
+            <FilterGroup title="Carrier Operation" icon={<Activity size={12} />}>
+              <div>
+                <FilterLabel>Carrier Operation</FilterLabel>
+                <MultiSelect options={CARRIER_OPERATIONS} selected={filters.carrierOperation} onChange={vals => setFilters(f => ({ ...f, carrierOperation: vals }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Hazmat</FilterLabel>
+                <FilterSelect name="hazmat" value={filters.hazmat} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+              <div>
+                <FilterLabel>Power Units</FilterLabel>
+                <MinMaxInputs nameMin="powerUnitsMin" nameMax="powerUnitsMax" valueMin={filters.powerUnitsMin} valueMax={filters.powerUnitsMax} onChange={handleFilterChange} />
+              </div>
+              <div>
+                <FilterLabel>Drivers</FilterLabel>
+                <MinMaxInputs nameMin="driversMin" nameMax="driversMax" valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
               </div>
             </FilterGroup>
             <FilterGroup title="Insurance Policy" icon={<Shield size={12} />}>
@@ -833,48 +850,16 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <FilterSelect name="bondOnFile" value={filters.bondOnFile} onChange={handleFilterChange} options={yesNoOptions} />
               </div>
             </FilterGroup>
-          </div>
-          {/* Lower row: Motor Carrier & Carrier Operations (collapsed by default) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FilterGroup title="Motor Carrier" icon={<Truck size={12} />} defaultOpen={false}>
+            <FilterGroup title="Date Range" icon={<Calendar size={12} />}>
               <div>
-                <FilterLabel>Entity Type</FilterLabel>
-                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={[
-                  { value: '', label: 'All' },
-                  { value: 'CARRIER', label: 'Carrier' },
-                  { value: 'BROKER', label: 'Broker' },
-                ]} />
-              </div>
-              <div>
-                <FilterLabel>State</FilterLabel>
-                <MultiSelect options={US_STATES} selected={filters.states} onChange={vals => setFilters(f => ({ ...f, states: vals }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>DOT Number</FilterLabel>
-                <input type="number" name="dotNumber" value={filters.dotNumber} onChange={handleFilterChange} placeholder="" min={0}
+                <FilterLabel>From Date</FilterLabel>
+                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
               </div>
               <div>
-                <FilterLabel>Has Email</FilterLabel>
-                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-            </FilterGroup>
-            <FilterGroup title="Carrier Operation" icon={<Activity size={12} />} defaultOpen={false}>
-              <div>
-                <FilterLabel>Carrier Operation</FilterLabel>
-                <MultiSelect options={CARRIER_OPERATIONS} selected={filters.carrierOperation} onChange={vals => setFilters(f => ({ ...f, carrierOperation: vals }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>Hazmat</FilterLabel>
-                <FilterSelect name="hazmat" value={filters.hazmat} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-              <div>
-                <FilterLabel>Power Units</FilterLabel>
-                <MinMaxInputs nameMin="powerUnitsMin" nameMax="powerUnitsMax" valueMin={filters.powerUnitsMin} valueMax={filters.powerUnitsMax} onChange={handleFilterChange} />
-              </div>
-              <div>
-                <FilterLabel>Drivers</FilterLabel>
-                <MinMaxInputs nameMin="driversMin" nameMax="driversMax" valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
+                <FilterLabel>To Date</FilterLabel>
+                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
               </div>
             </FilterGroup>
           </div>
@@ -918,7 +903,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <p className="text-slate-400 text-sm">Loading ventures...</p>
                   </td>
                 </tr>
-              ) : filteredVentures.length === 0 ? (
+              ) : ventures.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="text-center py-20">
                     <Database className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -926,7 +911,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                   </td>
                 </tr>
               ) : (
-                filteredVentures.map((v, i) => {
+                ventures.map((v, i) => {
                   const authStatus = getAuthorityStatus(v);
                   const entityType = getEntityType(v);
                   const isAuth = authStatus === 'AUTHORIZED';
@@ -990,10 +975,10 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       </div>
 
       {/* Pagination */}
-      {!isLoading && filteredVentures.length > 0 && (
+      {!isLoading && ventures.length > 0 && (
         <div className="flex items-center justify-between mt-3 px-2">
           <p className="text-xs text-slate-700 font-bold">
-            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + filteredVentures.length}{hasActiveFilters ? ` of ${filteredCount.toLocaleString()}` : (totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : '')}
+            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length}{hasActiveFilters ? ` of ${filteredCount.toLocaleString()}` : (totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : '')}
           </p>
           <div className="flex gap-2">
             <button
@@ -1005,7 +990,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             </button>
             <button
               onClick={() => goToPage(currentPage + 1)}
-              disabled={filteredVentures.length < PAGE_SIZE}
+              disabled={ventures.length < PAGE_SIZE}
               className="px-3 py-1.5 text-xs font-bold rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               Next
