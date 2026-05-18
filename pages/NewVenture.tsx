@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Search, Eye, X, MapPin, Phone, Mail, Hash, Truck, Calendar,
   Download, Activity, Loader2, ChevronDown, ChevronUp, Copy, Check,
@@ -242,6 +242,17 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     setSelectedVenture(v);
   };
 
+  const filteredVentures = useMemo(() => {
+    if (!filters.entityType) return ventures;
+    return ventures.filter(v => {
+      const et = getEntityType(v);
+      if (filters.entityType === 'CARRIER') return et === 'CARRIER';
+      if (filters.entityType === 'BROKER') return et === 'BROKER';
+      if (filters.entityType === 'CARRIER/BROKER') return et === 'CARRIER/BROKER';
+      return true;
+    });
+  }, [ventures, filters.entityType]);
+
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -255,7 +266,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
     if (dateFrom) f.dateFrom = dateFrom;
     if (dateTo) f.dateTo = dateTo;
     if (filters.active) f.active = filters.active;
-    if (filters.entityType) f.entityType = filters.entityType;
+
     if (filters.states.length > 0) f.state = filters.states.join('|');
     if (filters.hasEmail) f.hasEmail = filters.hasEmail;
     if (filters.carrierOperation.length > 0) f.carrierOperation = filters.carrierOperation.join('|');
@@ -672,7 +683,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">New Ventures</h1>
           <p className="text-slate-500 text-sm">
-            Showing <span className="text-violet-600 font-bold">{ventures.length}</span> records
+            Showing <span className="text-violet-600 font-bold">{filteredVentures.length}</span> records
             {hasActiveFilters && <span className="text-slate-900 font-bold"> out of {filteredCount.toLocaleString()}</span>}
             {!hasActiveFilters && totalCount > 0 && <span className="text-slate-900 font-bold"> of {totalCount.toLocaleString()} total</span>}
           </p>
@@ -695,8 +706,8 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> Refresh
           </button>
           <button
-            onClick={() => downloadNewVentureCSV(ventures)}
-            disabled={ventures.length === 0}
+            onClick={() => downloadNewVentureCSV(filteredVentures)}
+            disabled={filteredVentures.length === 0}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 rounded-xl text-sm font-bold transition-all border border-slate-200 active:scale-95"
           >
             <Download size={16} /> Export CSV
@@ -907,7 +918,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                     <p className="text-slate-400 text-sm">Loading ventures...</p>
                   </td>
                 </tr>
-              ) : ventures.length === 0 ? (
+              ) : filteredVentures.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="text-center py-20">
                     <Database className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -915,7 +926,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                   </td>
                 </tr>
               ) : (
-                ventures.map((v, i) => {
+                filteredVentures.map((v, i) => {
                   const authStatus = getAuthorityStatus(v);
                   const entityType = getEntityType(v);
                   const isAuth = authStatus === 'AUTHORIZED';
@@ -979,10 +990,10 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       </div>
 
       {/* Pagination */}
-      {!isLoading && ventures.length > 0 && (
+      {!isLoading && filteredVentures.length > 0 && (
         <div className="flex items-center justify-between mt-3 px-2">
           <p className="text-xs text-slate-700 font-bold">
-            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + ventures.length}{hasActiveFilters ? ` of ${filteredCount.toLocaleString()}` : (totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : '')}
+            Page {currentPage + 1} · Showing {currentPage * PAGE_SIZE + 1}–{currentPage * PAGE_SIZE + filteredVentures.length}{hasActiveFilters ? ` of ${filteredCount.toLocaleString()}` : (totalCount > 0 ? ` of ${totalCount.toLocaleString()}` : '')}
           </p>
           <div className="flex gap-2">
             <button
@@ -994,7 +1005,7 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
             </button>
             <button
               onClick={() => goToPage(currentPage + 1)}
-              disabled={ventures.length < PAGE_SIZE}
+              disabled={filteredVentures.length < PAGE_SIZE}
               className="px-3 py-1.5 text-xs font-bold rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               Next
