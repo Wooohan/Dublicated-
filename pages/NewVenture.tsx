@@ -794,46 +794,18 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
       {/* Filter Panel */}
       {showFilters && (
         <div className="mb-4 p-4 bg-white border border-slate-200 rounded-3xl overflow-y-auto max-h-[55vh] custom-scrollbar shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <FilterGroup title="Motor Carrier" icon={<Truck size={12} />}>
+          {/* Upper row: Date Range & Insurance Policy (open by default) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <FilterGroup title="Date Range" icon={<Calendar size={12} />}>
               <div>
-                <FilterLabel>Active</FilterLabel>
-                <FilterSelect name="active" value={filters.active} onChange={handleFilterChange} options={activeStatusOptions} />
-              </div>
-              <div>
-                <FilterLabel>Entity Type</FilterLabel>
-                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={entityTypeOptions} />
-              </div>
-              <div>
-                <FilterLabel>State</FilterLabel>
-                <MultiSelect options={US_STATES} selected={filters.states} onChange={vals => setFilters(f => ({ ...f, states: vals }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>DOT Number</FilterLabel>
-                <input type="number" name="dotNumber" value={filters.dotNumber} onChange={handleFilterChange} placeholder="" min={0}
+                <FilterLabel>From Date</FilterLabel>
+                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
               </div>
               <div>
-                <FilterLabel>Has Email</FilterLabel>
-                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-            </FilterGroup>
-            <FilterGroup title="Carrier Operation" icon={<Activity size={12} />}>
-              <div>
-                <FilterLabel>Carrier Operation</FilterLabel>
-                <MultiSelect options={CARRIER_OPERATIONS} selected={filters.carrierOperation} onChange={vals => setFilters(f => ({ ...f, carrierOperation: vals }))} placeholder="All" />
-              </div>
-              <div>
-                <FilterLabel>Hazmat</FilterLabel>
-                <FilterSelect name="hazmat" value={filters.hazmat} onChange={handleFilterChange} options={yesNoOptions} />
-              </div>
-              <div>
-                <FilterLabel>Power Units</FilterLabel>
-                <MinMaxInputs nameMin="powerUnitsMin" nameMax="powerUnitsMax" valueMin={filters.powerUnitsMin} valueMax={filters.powerUnitsMax} onChange={handleFilterChange} />
-              </div>
-              <div>
-                <FilterLabel>Drivers</FilterLabel>
-                <MinMaxInputs nameMin="driversMin" nameMax="driversMax" valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
+                <FilterLabel>To Date</FilterLabel>
+                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
               </div>
             </FilterGroup>
             <FilterGroup title="Insurance Policy" icon={<Shield size={12} />}>
@@ -850,16 +822,48 @@ export const NewVenture: React.FC<NewVentureProps> = ({ user }) => {
                 <FilterSelect name="bondOnFile" value={filters.bondOnFile} onChange={handleFilterChange} options={yesNoOptions} />
               </div>
             </FilterGroup>
-            <FilterGroup title="Date Range" icon={<Calendar size={12} />}>
+          </div>
+          {/* Lower row: Motor Carrier & Carrier Operations (collapsed by default) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FilterGroup title="Motor Carrier" icon={<Truck size={12} />} defaultOpen={false}>
               <div>
-                <FilterLabel>From Date</FilterLabel>
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+                <FilterLabel>Entity Type</FilterLabel>
+                <FilterSelect name="entityType" value={filters.entityType} onChange={handleFilterChange} options={[
+                  { value: '', label: 'All' },
+                  { value: 'CARRIER', label: 'Carrier' },
+                  { value: 'BROKER', label: 'Broker' },
+                ]} />
+              </div>
+              <div>
+                <FilterLabel>State</FilterLabel>
+                <MultiSelect options={US_STATES} selected={filters.states} onChange={vals => setFilters(f => ({ ...f, states: vals }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>DOT Number</FilterLabel>
+                <input type="number" name="dotNumber" value={filters.dotNumber} onChange={handleFilterChange} placeholder="" min={0}
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
               </div>
               <div>
-                <FilterLabel>To Date</FilterLabel>
-                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500" />
+                <FilterLabel>Has Email</FilterLabel>
+                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+            </FilterGroup>
+            <FilterGroup title="Carrier Operation" icon={<Activity size={12} />} defaultOpen={false}>
+              <div>
+                <FilterLabel>Carrier Operation</FilterLabel>
+                <MultiSelect options={CARRIER_OPERATIONS} selected={filters.carrierOperation} onChange={vals => setFilters(f => ({ ...f, carrierOperation: vals }))} placeholder="All" />
+              </div>
+              <div>
+                <FilterLabel>Hazmat</FilterLabel>
+                <FilterSelect name="hazmat" value={filters.hazmat} onChange={handleFilterChange} options={yesNoOptions} />
+              </div>
+              <div>
+                <FilterLabel>Power Units</FilterLabel>
+                <MinMaxInputs nameMin="powerUnitsMin" nameMax="powerUnitsMax" valueMin={filters.powerUnitsMin} valueMax={filters.powerUnitsMax} onChange={handleFilterChange} />
+              </div>
+              <div>
+                <FilterLabel>Drivers</FilterLabel>
+                <MinMaxInputs nameMin="driversMin" nameMax="driversMax" valueMin={filters.driversMin} valueMax={filters.driversMax} onChange={handleFilterChange} />
               </div>
             </FilterGroup>
           </div>
