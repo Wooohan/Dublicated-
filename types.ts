@@ -131,7 +131,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  plan: 'Free' | 'Starter' | 'Pro' | 'Enterprise';
+  plan: 'Basic' | 'Essential' | 'Professional' | 'Insurance';
   dailyLimit: number;
   recordsExtractedToday: number;
   lastActive: string;
