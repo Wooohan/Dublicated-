@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Activity, DollarSign, Server, Edit2, Save, X, Search, Ban, UserPlus, Shield, Trash2, CheckCircle, RefreshCw, Plus } from 'lucide-react';
 import { User, BlockedIP } from '../types';
+import { PLAN_DAILY_LIMITS, PlanName } from '../config/permissions';
 import { 
   fetchUsersFromSupabase, 
   createUserInSupabase, 
@@ -42,7 +43,7 @@ export const AdminPanel: React.FC = () => {
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  const [newUserPlan, setNewUserPlan] = useState<'Free' | 'Starter' | 'Pro' | 'Enterprise'>('Free');
+  const [newUserPlan, setNewUserPlan] = useState<PlanName>('Insurance');
   const [newUserRole, setNewUserRole] = useState<'user' | 'admin'>('user');
   
   const [blockIpAddress, setBlockIpAddress] = useState('');
@@ -77,8 +78,8 @@ export const AdminPanel: React.FC = () => {
 
   const activeUsers = users.filter(u => u.isOnline).length;
   const totalRevenue = users.reduce((acc, user) => {
-    if (user.plan === 'Pro') return acc + 149;
-    if (user.plan === 'Enterprise') return acc + 499;
+    if (user.plan === 'Professional') return acc + 149;
+    if (user.plan === 'Insurance') return acc + 499;
     return acc;
   }, 0);
 
@@ -178,7 +179,7 @@ export const AdminPanel: React.FC = () => {
       email: newUserEmail.trim().toLowerCase(),
       role: newUserRole,
       plan: newUserPlan,
-      dailyLimit: newUserPlan === 'Free' ? 50 : newUserPlan === 'Starter' ? 100 : newUserPlan === 'Pro' ? 500 : 100000,
+      dailyLimit: PLAN_DAILY_LIMITS[newUserPlan],
       recordsExtractedToday: 0,
       lastActive: 'Never',
       ipAddress: '',
@@ -193,7 +194,7 @@ export const AdminPanel: React.FC = () => {
       setNewUserName('');
       setNewUserEmail('');
       setNewUserPassword('');
-      setNewUserPlan('Free');
+      setNewUserPlan('Insurance');
       setNewUserRole('user');
       setActiveTab('users');
       showMessage('success', 'User created successfully');
@@ -396,16 +397,16 @@ export const AdminPanel: React.FC = () => {
                               value={editForm.plan}
                               onChange={e => setEditForm({...editForm, plan: e.target.value as any})}
                             >
-                              <option value="Free">Free</option>
-                              <option value="Starter">Starter</option>
-                              <option value="Pro">Pro</option>
-                              <option value="Enterprise">Enterprise</option>
+                              <option value="Basic">Basic</option>
+                              <option value="Essential">Essential</option>
+                              <option value="Professional">Professional</option>
+                              <option value="Insurance">Insurance</option>
                             </select>
                          ) : (
                             <span className={`px-2 py-1 rounded text-xs font-bold border 
-                              ${user.plan === 'Enterprise' ? 'bg-purple-50 text-purple-600 border-purple-200' : 
-                                user.plan === 'Pro' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 
-                                user.plan === 'Starter' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                              ${user.plan === 'Insurance' ? 'bg-purple-50 text-purple-600 border-purple-200' : 
+                                user.plan === 'Professional' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 
+                                user.plan === 'Essential' ? 'bg-blue-50 text-blue-600 border-blue-200' :
                                 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                               {user.plan}
                             </span>
@@ -664,10 +665,10 @@ export const AdminPanel: React.FC = () => {
                   onChange={(e) => setNewUserPlan(e.target.value as any)}
                   className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                 >
-                  <option value="Free">Free (50 MCs/day)</option>
-                  <option value="Starter">Starter (100 MCs/day)</option>
-                  <option value="Pro">Pro (500 MCs/day)</option>
-                  <option value="Enterprise">Enterprise (Unlimited)</option>
+                  <option value="Basic">Basic (50 MCs/day)</option>
+                  <option value="Essential">Essential (100 MCs/day)</option>
+                  <option value="Professional">Professional (500 MCs/day)</option>
+                  <option value="Insurance">Insurance (Unlimited)</option>
                 </select>
               </div>
               <div>
