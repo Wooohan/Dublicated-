@@ -1,6 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Truck, CreditCard, Settings, Terminal, LogOut, ShieldAlert, Database, ShieldCheck, Rocket, ChevronRight, ChevronLeft, Menu } from 'lucide-react';
 import { ViewState, User } from '../types';
+import { canAccessPage } from '../config/permissions';
 
 interface SidebarProps {
   currentView: ViewState;
@@ -14,19 +15,19 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, user, onLogout, collapsed, onToggleCollapse }) => {
   const isAdmin = user.role === 'admin';
   const allNavItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, adminOnly: false, group: 'main' },
-    { id: 'scraper', label: 'Live Scraper', icon: Terminal, adminOnly: true, group: 'main' },
-    { id: 'carrier-search', label: 'Carrier Database', icon: Database, adminOnly: false, group: 'main' },
-    { id: 'renewal-policies', label: 'Renewal Policies', icon: Database, adminOnly: false, group: 'main' },
-    { id: 'mid-term-cancellation', label: 'Mid Term Cancellation', icon: Database, adminOnly: false, group: 'main' },
-    { id: 'new-venture', label: 'New Ventures', icon: Rocket, adminOnly: false, group: 'main' },
-    { id: 'fmcsa-register', label: 'FMCSA Register', icon: Database, adminOnly: false, group: 'main' },
-    { id: 'subscription', label: 'Subscription', icon: CreditCard, adminOnly: false, group: 'tools' },
-    { id: 'settings', label: 'Settings', icon: Settings, adminOnly: true, group: 'tools' },
-    { id: 'admin', label: 'Admin Panel', icon: ShieldAlert, adminOnly: true, group: 'tools' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, group: 'main' },
+    { id: 'scraper', label: 'Live Scraper', icon: Terminal, group: 'main' },
+    { id: 'carrier-search', label: 'Carrier Database', icon: Database, group: 'main' },
+    { id: 'renewal-policies', label: 'Renewal Policies', icon: Database, group: 'main' },
+    { id: 'mid-term-cancellation', label: 'Mid Term Cancellation', icon: Database, group: 'main' },
+    { id: 'new-venture', label: 'New Ventures', icon: Rocket, group: 'main' },
+    { id: 'fmcsa-register', label: 'FMCSA Register', icon: Database, group: 'main' },
+    { id: 'subscription', label: 'Subscription', icon: CreditCard, group: 'tools' },
+    { id: 'settings', label: 'Settings', icon: Settings, group: 'tools' },
+    { id: 'admin', label: 'Admin Panel', icon: ShieldAlert, group: 'tools' },
   ];
 
-  const navItems = allNavItems.filter(item => isAdmin || !item.adminOnly);
+  const navItems = allNavItems.filter(item => canAccessPage(user, item.id as ViewState));
   const mainItems = navItems.filter(i => i.group === 'main');
   const toolItems = navItems.filter(i => i.group === 'tools');
 
