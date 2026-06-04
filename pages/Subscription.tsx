@@ -3,29 +3,38 @@ import { Check } from 'lucide-react';
 
 const plans = [
   {
-    name: 'Starter',
+    name: 'Basic',
     price: '$49',
     period: '/mo',
-    description: 'Perfect for small brokerages getting started.',
-    features: ['1,000 Records / Day', 'Manual Downloads', 'Basic Carrier Info', 'Email Support'],
+    description: 'Core access for getting started.',
+    features: ['Dashboard', 'Carrier Database', 'Settings & Subscription', 'Page size fixed at 500'],
     cta: 'Get Started',
     popular: false,
   },
   {
-    name: 'Pro',
+    name: 'Essential',
+    price: '$99',
+    period: '/mo',
+    description: 'For small brokerages that need more reach.',
+    features: ['Everything in Basic', 'FMCSA Register', 'Advanced Filters', 'Adjustable page size'],
+    cta: 'Upgrade to Essential',
+    popular: false,
+  },
+  {
+    name: 'Professional',
     price: '$149',
     period: '/mo',
     description: 'For growing teams needing serious data.',
-    features: ['50,000 Records / Day', 'Auto-Sync to CRM', 'Advanced Filtering', 'Priority Support', 'API Access'],
-    cta: 'Upgrade to Pro',
+    features: ['Everything in Essential', 'New Ventures', 'Full Advanced Filters', 'Priority Support'],
+    cta: 'Upgrade to Professional',
     popular: true,
   },
   {
-    name: 'Enterprise',
+    name: 'Insurance',
     price: '$499',
     period: '/mo',
-    description: 'Unlimited scale for large logistics firms.',
-    features: ['Unlimited Records', 'Dedicated Account Manager', 'Custom Integration', 'SLA Guarantee', 'White-label Reports'],
+    description: 'Full access for large logistics & insurance firms.',
+    features: ['Everything unlocked', 'Inspections, Safety & Insurance data', 'Officer names visible', 'Scraper & Pipeline tools'],
     cta: 'Contact Sales',
     popular: false,
   }
@@ -43,7 +52,7 @@ export const Subscription: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {plans.map((plan, idx) => (
           <div 
             key={idx} 
