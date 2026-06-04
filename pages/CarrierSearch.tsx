@@ -1,13 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, X, MapPin, Phone, Mail, Hash, Truck, Calendar, ShieldCheck, Download, ShieldAlert, Activity, Info, Globe, Map as MapIcon, Boxes, Shield, ExternalLink, CheckCircle2, AlertTriangle, Zap, Loader2, ChevronDown, ChevronUp, Copy, Check, Database } from 'lucide-react';
-import { CarrierData, InsuranceHistoryFiling } from '../types';
+import { Search, Eye, X, MapPin, Phone, Mail, Hash, Truck, Calendar, ShieldCheck, Download, ShieldAlert, Activity, Info, Globe, Map as MapIcon, Boxes, Shield, ExternalLink, CheckCircle2, AlertTriangle, Zap, Loader2, ChevronDown, ChevronUp, Copy, Check, Database, Lock } from 'lucide-react';
+import { CarrierData, InsuranceHistoryFiling, User } from '../types';
 import { downloadCSV } from '../services/mockService';
 import { fetchCarriersFromSupabase, getCarrierCountFromSupabase, CarrierFiltersSupabase } from '../services/supabaseClient';
 import { fetchSafetyByDot, fetchInspectionsByDot, fetchCrashesByDot } from '../services/backendApiService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getPermissions } from '../config/permissions';
 interface CarrierSearchProps {
+  user: User;
   onNavigateToInsurance: () => void;
 }
+const BlurGate: React.FC<{ blurred: boolean; className?: string; message?: string; children: React.ReactNode }> = ({ blurred, className = '', message = 'Upgrade your plan to unlock', children }) => {
+  if (!blurred) return <div className={className}>{children}</div>;
+  return (
+    <div className={`relative ${className}`}>
+      <div className="blur-md pointer-events-none select-none" aria-hidden="true">{children}</div>
+      <div className="absolute inset-0 z-20 flex items-center justify-center">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-white/95 border border-slate-200 rounded-xl shadow-md">
+          <Lock size={14} className="text-[#7C5CFC]" />
+          <span className="text-xs font-bold text-slate-600">{message}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
   'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
@@ -139,7 +155,8 @@ const MultiSelect: React.FC<{
   selected: string[];
   onChange: (vals: string[]) => void;
   placeholder?: string;
-}> = ({ options, selected, onChange, placeholder = 'All' }) => {
+  disabled?: boolean;
+}> = ({ options, selected, onChange, placeholder = 'All', disabled = false }) => {
   const [open, setOpen] = useState(false);
   const toggle = (val: string) => {
     onChange(selected.includes(val) ? selected.filter(v => v !== val) : [...selected, val]);
@@ -148,8 +165,9 @@ const MultiSelect: React.FC<{
     <div className="relative">
       <button
         type="button"
+        disabled={disabled}
         onClick={() => setOpen(o => !o)}
-        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC] flex items-center justify-between"
+        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC] flex items-center justify-between disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
       >
         <span className={selected.length === 0 ? 'text-slate-400' : 'text-slate-900 truncate'}>
           {selected.length === 0 ? placeholder : selected.join(', ')}
@@ -174,29 +192,31 @@ const MultiSelect: React.FC<{
     </div>
   );
 };
-const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => {
-  const [open, setOpen] = useState(true);
+const FilterGroup: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; locked?: boolean }> = ({ title, icon, children, locked = false }) => {
+  const [open, setOpen] = useState(!locked);
+  const isOpen = locked ? false : open;
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+    <div className={`bg-white border border-slate-200 rounded-2xl overflow-hidden ${locked ? 'opacity-70' : ''}`}>
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => { if (!locked) setOpen(o => !o); }}
+        className={`w-full flex items-center justify-between px-4 py-3 text-left ${locked ? 'cursor-not-allowed' : ''}`}
+        title={locked ? 'Upgrade your plan to unlock these filters' : undefined}
       >
         <span className="flex items-center gap-2 text-xs font-black text-[#7C5CFC] uppercase tracking-widest">
           {icon} {title}
         </span>
-        {open ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+        {locked ? <Lock size={13} className="text-slate-400" /> : (isOpen ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />)}
       </button>
-      {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
+      {isOpen && <div className="px-4 pb-4 space-y-3">{children}</div>}
     </div>
   );
 };
 const FilterLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">{children}</label>
 );
-const FilterSelect: React.FC<{ name: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: { value: string; label: string }[] }> = ({ name, value, onChange, options }) => (
-  <select name={name} value={value} onChange={onChange} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]">
+const FilterSelect: React.FC<{ name: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: { value: string; label: string }[]; disabled?: boolean }> = ({ name, value, onChange, options, disabled = false }) => (
+  <select name={name} value={value} onChange={onChange} disabled={disabled} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
     {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
   </select>
 );
@@ -212,15 +232,15 @@ const MinMaxInputs: React.FC<{
       className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
   </div>
 );
-export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsurance }) => {
-  
+export const CarrierSearch: React.FC<CarrierSearchProps> = ({ user, onNavigateToInsurance }) => {
+  const perms = getPermissions(user);
   const [carriers, setCarriers] = useState<CarrierData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [filteredCount, setFilteredCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
-  const PAGE_SIZE_OPTIONS = [100, 200, 500, 1000];
-  const [pageSize, setPageSize] = useState(500);
+  const PAGE_SIZE_OPTIONS = perms.fixedPageSize ? [perms.fixedPageSize] : [100, 200, 500, 1000];
+  const [pageSize, setPageSize] = useState(perms.fixedPageSize ?? 500);
   const [currentPage, setCurrentPage] = useState(0);
   const [mcSearchTerm, setMcSearchTerm] = useState('');
   const [nameSearchTerm, setNameSearchTerm] = useState('');
@@ -453,11 +473,12 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
             <ShieldAlert size={16} /> Batch Enrichment Pipeline
           </button>
           <button
-            onClick={() => downloadCSV(carriers)}
-            disabled={carriers.length === 0}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 rounded-xl text-sm font-bold transition-all border border-slate-200 active:scale-95"
+            onClick={() => { if (perms.canExport) downloadCSV(carriers); }}
+            disabled={carriers.length === 0 || !perms.canExport}
+            title={!perms.canExport ? 'Export is not available on your plan' : undefined}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-xl text-sm font-bold transition-all border border-slate-200 active:scale-95"
           >
-            <Download size={16} /> Export CSV
+            {perms.canExport ? <Download size={16} /> : <Lock size={16} />} Export CSV
           </button>
         </div>
       </div>
@@ -491,11 +512,13 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
           />
         </div>
         <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`px-5 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 border text-sm ${showFilters ? 'bg-[#7C5CFC] text-white border-[#7C5CFC]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+          onClick={() => { if (!perms.advancedFiltersLocked) setShowFilters(!showFilters); }}
+          disabled={perms.advancedFiltersLocked}
+          title={perms.advancedFiltersLocked ? 'Advanced filters are not available on your plan' : undefined}
+          className={`px-5 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 border text-sm ${perms.advancedFiltersLocked ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' : showFilters ? 'bg-[#7C5CFC] text-white border-[#7C5CFC]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
         >
-          <Zap size={16} className={showFilters ? 'fill-white' : ''} />
-          {showFilters ? 'Hide Filters' : 'Advanced Filters'}
+          {perms.advancedFiltersLocked ? <Lock size={16} /> : <Zap size={16} className={showFilters ? 'fill-white' : ''} />}
+          {perms.advancedFiltersLocked ? 'Advanced Filters' : (showFilters ? 'Hide Filters' : 'Advanced Filters')}
         </button>
         <button
           onClick={applyFilters}
@@ -529,7 +552,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               </div>
               <div>
                 <FilterLabel>State</FilterLabel>
-                <MultiSelect options={US_STATES} selected={filters.state} onChange={v => setFilters(p => ({ ...p, state: v }))} placeholder="All" />
+                <MultiSelect options={US_STATES} selected={filters.state} onChange={v => setFilters(p => ({ ...p, state: v }))} placeholder="All" disabled={perms.disabledFilters.includes('state')} />
               </div>
               <div>
                 <FilterLabel>DOT Number</FilterLabel>
@@ -543,7 +566,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               </div>
               <div>
                 <FilterLabel>Has Email</FilterLabel>
-                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} />
+                <FilterSelect name="hasEmail" value={filters.hasEmail} onChange={handleFilterChange} options={yesNoOptions} disabled={perms.disabledFilters.includes('hasEmail')} />
               </div>
               <div>
                 <FilterLabel>Has BOC-3</FilterLabel>
@@ -556,7 +579,8 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               <div>
                 <FilterLabel>Officer Name</FilterLabel>
                 <input type="text" value={officerSearchTerm} onChange={(e) => setOfficerSearchTerm(e.target.value)} placeholder="Search by officer name..." onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC]" />
+                  disabled={perms.disabledFilters.includes('officerName')}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#7C5CFC] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
               </div>
             </FilterGroup>
             <FilterGroup title="Carrier Operation" icon={<Activity size={12} />}>
@@ -587,7 +611,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                 <MultiSelect options={CARGO_TYPES} selected={filters.cargo} onChange={v => setFilters(p => ({ ...p, cargo: v }))} placeholder="All" />
               </div>
             </FilterGroup>
-            <FilterGroup title="Insurance Policy" icon={<Shield size={12} />}>
+            <FilterGroup title="Insurance Policy" icon={<Shield size={12} />} locked={perms.lockedFilterGroups.includes('Insurance Policy')}>
               <div>
                 <FilterLabel>Required</FilterLabel>
                 <MultiSelect options={INSURANCE_REQUIRED_TYPES} selected={filters.insuranceRequired} onChange={v => setFilters(p => ({ ...p, insuranceRequired: v }))} placeholder="All" />
@@ -649,7 +673,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                 <FilterSelect name="trustFundOnFile" value={filters.trustFundOnFile} onChange={handleFilterChange} options={yesNoNumOptions} />
               </div>
             </FilterGroup>
-            <FilterGroup title="Safety" icon={<ShieldCheck size={12} />}>
+            <FilterGroup title="Safety" icon={<ShieldCheck size={12} />} locked={perms.lockedFilterGroups.includes('Safety')}>
               <div>
                 <FilterLabel>OOS Violations</FilterLabel>
                 <MinMaxInputs nameMin="oosMin" nameMax="oosMax" valueMin={filters.oosMin} valueMax={filters.oosMax} onChange={handleFilterChange} />
@@ -760,12 +784,14 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
             </p>
             <select
               value={pageSize}
+              disabled={!!perms.fixedPageSize}
+              title={perms.fixedPageSize ? 'Page size is fixed on your plan' : undefined}
               onChange={(e) => {
                 const newSize = parseInt(e.target.value);
                 setPageSize(newSize);
                 loadCarriers(buildFilters(), 0, newSize);
               }}
-              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-900 outline-none focus:border-[#7C5CFC]"
+              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-900 outline-none focus:border-[#7C5CFC] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
             >
               {PAGE_SIZE_OPTIONS.map(s => (
                 <option key={s} value={s}>{s} / page</option>
@@ -874,13 +900,13 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                     {selectedCarrier.companyOfficer1 && (
                       <div className="flex justify-between items-center py-3">
                         <span className="text-xs text-slate-500">Company Officer</span>
-                        <span className="text-sm font-semibold text-slate-900">{selectedCarrier.companyOfficer1}</span>
+                        <span className={`text-sm font-semibold text-slate-900 ${perms.blurOfficerNames ? 'blur-sm select-none' : ''}`}>{perms.blurOfficerNames ? 'Locked' : selectedCarrier.companyOfficer1}</span>
                       </div>
                     )}
                     {selectedCarrier.companyOfficer2 && (
                       <div className="flex justify-between items-center py-3 last:pb-0">
                         <span className="text-xs text-slate-500">Company Officer 2</span>
-                        <span className="text-sm font-semibold text-slate-900">{selectedCarrier.companyOfficer2}</span>
+                        <span className={`text-sm font-semibold text-slate-900 ${perms.blurOfficerNames ? 'blur-sm select-none' : ''}`}>{perms.blurOfficerNames ? 'Locked' : selectedCarrier.companyOfficer2}</span>
                       </div>
                     )}
                   </div>
@@ -1022,7 +1048,8 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
               </div>
 
               {/* Row 3 - Insurance History */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+              <BlurGate blurred={perms.blurInsuranceHistory} className="mb-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-2">
                     <ShieldCheck size={16} className="text-slate-400" />
@@ -1081,8 +1108,10 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                   </div>
                 )}
               </div>
+              </BlurGate>
 
               {/* Row 4 - Safety (ORIGINAL) & Inspections/Crashes (ORIGINAL with API) */}
+              <BlurGate blurred={perms.blurSafety || perms.blurInspectionsCrashes}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Safety Information - ORIGINAL with API data */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
@@ -1470,6 +1499,7 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ onNavigateToInsura
                   )}
                 </div>
               </div>
+              </BlurGate>
             </div>
           </div>
         </div>
