@@ -10,12 +10,14 @@ import { Landing } from './pages/Landing';
 import { AdminPanel } from './pages/AdminPanel';
 import { FMCSARegister } from './pages/FMCSARegister';
 import { NewVenture } from './pages/NewVenture';
+import { InsuranceScraper } from './pages/InsuranceScraper';
 import { ViewState, User, CarrierData } from './types';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { updateUserInSupabase } from './services/userService';
 import { logoutUser } from './services/backendApiService';
 import { fetchCarriersFromSupabase, CarrierFiltersSupabase } from './services/supabaseClient';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { canAccessPage } from './config/permissions';
 const SettingsPage: React.FC<{ user: User }> = ({ user }) => (
   <div className="p-8 max-w-2xl mx-auto animate-fade-in">
     <h2 className="text-2xl font-bold text-slate-800 mb-2 tracking-tight">Settings</h2>
@@ -108,10 +110,7 @@ const App: React.FC = () => {
     setAllCarriers(updatedData);
   };
   const handleViewChange = (view: ViewState) => {
-    const isAdmin = user?.role === 'admin';
-    const adminOnlyViews: ViewState[] = ['scraper', 'insurance-scraper', 'settings', 'admin'];
-    
-    if (!isAdmin && adminOnlyViews.includes(view)) {
+    if (!canAccessPage(user, view)) {
       setCurrentView('dashboard');
       return;
     }
@@ -120,6 +119,10 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (!user) return null;
     const isAdmin = user.role === 'admin';
+    if (!canAccessPage(user, currentView)) {
+      return <Dashboard isLoading={isLoadingCarriers} />;
+    }
+    const canViewInsuranceScraper = canAccessPage(user, 'insurance-scraper');
     switch (currentView) {
       case 'dashboard':
         return <Dashboard isLoading={isLoadingCarriers} />;
@@ -134,19 +137,20 @@ const App: React.FC = () => {
       case 'carrier-search':
         return (
           <CarrierSearch 
-            onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
+            user={user}
+            onNavigateToInsurance={() => { if(canViewInsuranceScraper) setCurrentView('insurance-scraper'); }} 
           />
         );
       case 'renewal-policies':
         return (
           <RenewalPolicies 
-            onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
+            onNavigateToInsurance={() => { if(canViewInsuranceScraper) setCurrentView('insurance-scraper'); }} 
           />
         );
       case 'mid-term-cancellation':
         return (
           <MidTermCancellation 
-            onNavigateToInsurance={() => { if(isAdmin) setCurrentView('insurance-scraper'); }} 
+            onNavigateToInsurance={() => { if(canViewInsuranceScraper) setCurrentView('insurance-scraper'); }} 
           />
         );
       case 'new-venture':
