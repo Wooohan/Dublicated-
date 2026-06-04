@@ -114,13 +114,14 @@ export interface User {
   name: string;
   email: string;
   role: 'user' | 'admin';
-  plan: 'Free' | 'Starter' | 'Pro' | 'Enterprise';
+  plan: 'Basic' | 'Essential' | 'Professional' | 'Insurance';
   dailyLimit: number;
   recordsExtractedToday: number;
   lastActive: string;
   ipAddress: string;
   isOnline: boolean;
   isBlocked?: boolean;
+  allowedIps?: string[];
   created_at?: string;
   updated_at?: string;
 }
