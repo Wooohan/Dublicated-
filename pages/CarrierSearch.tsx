@@ -947,11 +947,33 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ user, onNavigateTo
                   <div className="space-y-0 divide-y divide-slate-100">
                     <div className="flex justify-between items-center py-3 first:pt-0">
                       <span className="text-xs text-slate-500">Phone</span>
-                      <span className="text-sm font-semibold text-slate-900">{selectedCarrier.phone || 'N/A'}</span>
+                      {selectedCarrier.phone ? (
+                        <a 
+                          href={`tel:${selectedCarrier.phone}`}
+                          className="text-sm font-semibold text-[#7C5CFC] hover:text-[#5A42D4] transition-colors flex items-center gap-1.5 cursor-pointer"
+                          title="Click to call"
+                        >
+                          <Phone size={12} className="text-[#7C5CFC]" />
+                          {selectedCarrier.phone}
+                        </a>
+                      ) : (
+                        <span className="text-sm font-semibold text-slate-900">N/A</span>
+                      )}
                     </div>
                     <div className="flex justify-between items-center py-3">
                       <span className="text-xs text-slate-500">Email</span>
-                      <span className="text-sm font-semibold text-[#7C5CFC] truncate max-w-[160px]">{selectedCarrier.email || 'None'}</span>
+                      {selectedCarrier.email ? (
+                        <button
+                          onClick={() => handleCopy(selectedCarrier.email!, 'email')}
+                          className="text-sm font-semibold text-[#7C5CFC] hover:text-[#5A42D4] transition-colors truncate max-w-[160px] flex items-center gap-1.5 cursor-pointer"
+                          title="Click to copy email"
+                        >
+                          {copiedField === 'email' ? <Check size={12} className="text-emerald-500 shrink-0" /> : <Copy size={12} className="text-[#7C5CFC] shrink-0" />}
+                          {copiedField === 'email' ? 'Copied!' : selectedCarrier.email}
+                        </button>
+                      ) : (
+                        <span className="text-sm font-semibold text-slate-900">None</span>
+                      )}
                     </div>
                     <div className="flex justify-between items-center py-3 last:pb-0">
                       <span className="text-xs text-slate-500">Location</span>
