@@ -22,6 +22,28 @@ function authHeadersGet(): Record<string, string> {
   return {};
 }
 
+export const checkUserBanStatus = async (): Promise<{ allowed: boolean; blocked: boolean; reason: string } | null> => {
+  try {
+    const token = getToken();
+    if (!token) return null;
+    
+    const response = await fetch(`${BACKEND_URL}/api/auth/check-status`, {
+      headers: authHeadersGet(),
+    });
+    
+    if (response.status === 401) {
+      // Token expired or invalid
+      return { allowed: false, blocked: true, reason: "Session expired. Please log in again." };
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (err: any) {
+    console.error('Ban status check error:', err);
+    return null; // Network error, don't force logout
+  }
+};
+
 export const loginUser = async (
   email: string,
   password: string
