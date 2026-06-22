@@ -427,10 +427,16 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ user, onNavigateTo
     return f;
   }, [mcSearchTerm, nameSearchTerm, officerSearchTerm, filters]);
   const applyFilters = () => loadCarriers(buildFilters(), 0);
+  const MAX_PAGE_LIMIT = 4000;
   const goToPage = (page: number) => loadCarriers(buildFilters(), page);
+  const isPageInputExceedsLimit = (() => {
+    const n = parseInt(pageInput, 10);
+    return Number.isFinite(n) && n > MAX_PAGE_LIMIT;
+  })();
   const jumpToPage = () => {
     const n = parseInt(pageInput, 10);
     if (!Number.isFinite(n) || n < 1) return;
+    if (n > MAX_PAGE_LIMIT) return;
     const maxPage = filteredCount > 0 ? Math.ceil(filteredCount / pageSize) : n;
     const target = Math.max(1, Math.min(n, maxPage));
     goToPage(target - 1);
@@ -476,8 +482,8 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ user, onNavigateTo
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <button
-            onClick={onNavigateToInsurance}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#7C5CFC] hover:bg-[#7C5CFC] text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#7C5CFC]/20 active:scale-95"
+            disabled
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#7C5CFC]/50 text-white rounded-xl text-sm font-bold transition-all cursor-not-allowed opacity-60"
           >
             <ShieldAlert size={16} /> Batch Enrichment Pipeline
           </button>
@@ -833,19 +839,23 @@ export const CarrierSearch: React.FC<CarrierSearchProps> = ({ user, onNavigateTo
               <input
                 type="number"
                 min={1}
+                max={MAX_PAGE_LIMIT}
                 value={pageInput}
                 onChange={(e) => setPageInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') jumpToPage(); }}
                 placeholder="Page"
-                className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-900 outline-none focus:border-[#7C5CFC]"
+                className={`w-16 bg-white border rounded-xl px-2 py-1.5 text-xs text-slate-900 outline-none ${isPageInputExceedsLimit ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-[#7C5CFC]'}`}
               />
               <button
                 onClick={jumpToPage}
-                disabled={!pageInput.trim()}
+                disabled={!pageInput.trim() || isPageInputExceedsLimit}
                 className="px-3 py-1.5 text-xs font-bold rounded-xl bg-[#7C5CFC] text-white hover:bg-[#6a4ce0] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
                 Go
               </button>
+              {isPageInputExceedsLimit && (
+                <span className="text-[10px] text-red-500 font-semibold ml-1 whitespace-nowrap">Max page is {MAX_PAGE_LIMIT.toLocaleString()}</span>
+              )}
             </div>
           </div>
         </div>
