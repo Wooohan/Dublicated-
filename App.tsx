@@ -14,7 +14,7 @@ import { InsuranceScraper } from './pages/InsuranceScraper';
 import { ViewState, User, CarrierData } from './types';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { updateUserInSupabase } from './services/userService';
-import { logoutUser } from './services/backendApiService';
+import { logoutUser, checkUserBanStatus } from './services/backendApiService';
 import { fetchCarriersFromSupabase, CarrierFiltersSupabase } from './services/supabaseClient';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { canAccessPage } from './config/permissions';
@@ -83,6 +83,33 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('hussfix_sidebar_collapsed', String(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  // Hourly ban/block check - auto-logout if user is banned
+  useEffect(() => {
+    if (!user) return;
+
+    const checkBanStatus = async () => {
+      const status = await checkUserBanStatus();
+      if (status && status.blocked) {
+        // User has been banned - force logout
+        logoutUser();
+        setUser(null);
+        localStorage.removeItem('hussfix_user');
+        localStorage.removeItem('hussfix_view');
+        setCurrentView('dashboard');
+        alert(status.reason || 'Your account has been suspended. Please contact an administrator.');
+      }
+    };
+
+    // Check immediately on mount (in case user was banned while app was closed)
+    checkBanStatus();
+
+    // Then check every hour (3600000 ms)
+    const intervalId = setInterval(checkBanStatus, 3600000);
+
+    return () => clearInterval(intervalId);
+  }, [user]);
+
   const handleLogin = (userData: User) => {
     setUser(userData);
     setCurrentView(userData.role === 'admin' ? 'admin' : 'dashboard');
