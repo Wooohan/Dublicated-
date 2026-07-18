@@ -707,8 +707,8 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
 
               <button
                 type="submit"
-                disabled={isLoading}
-                style={{ width: '100%', padding: '12px 16px', borderRadius: 10, background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', border: 'none', color: 'white', fontSize: 15, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1, fontFamily: 'DM Sans, sans-serif' }}
+                disabled={isLoading || authMode === 'register'}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 10, background: 'linear-gradient(135deg, #7C5CFC, #9B7EFD)', border: 'none', color: 'white', fontSize: 15, fontWeight: 700, cursor: (isLoading || authMode === 'register') ? 'not-allowed' : 'pointer', opacity: (isLoading || authMode === 'register') ? 0.5 : 1, fontFamily: 'DM Sans, sans-serif' }}
               >
                 {isLoading ? 'Loading...' : authMode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
